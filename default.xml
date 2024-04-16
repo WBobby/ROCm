@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
     <remote name="rocm-org" fetch="https://github.com/ROCm/" />
-            <!-- <remote name="KhronosGroup" fetch="https://github.com/KhronosGroup/" /> -->
     <default revision="refs/tags/rocm-6.1.0"
      remote="rocm-org"
      sync-c="true"
@@ -19,7 +18,6 @@
     <project name="rocprofiler" />
     <project name="rocprofiler-register" />
     <project name="roctracer" />
-            <!-- <project path="ROCm-OpenCL-Runtime/api/opencl/khronos/icd" name="OpenCL-ICD-Loader" remote="KhronosGroup" revision="6c03f8b58fafd9dd693eaac826749a5cfad515f8" /> -->
     <project name="clang-ocl" />
     <project name="rdc" />
 <!--HIP Projects-->
@@ -28,11 +26,8 @@
     <project name="clr" />
     <project name="hipother" />
     <project name="HIPIFY" />
-            <!-- <project name="HIPCC" /> -->
 <!-- The following projects are all associated with the AMDGPU LLVM compiler -->
     <project name="llvm-project" />
-            <!-- <project name="ROCm-Device-Libs" /> -->
-            <!-- <project name="ROCm-CompilerSupport" /> -->
     <project name="half" />
 <!-- gdb projects -->
     <project name="ROCgdb" />
