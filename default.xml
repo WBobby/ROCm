@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
     <remote name="rocm-org" fetch="https://github.com/ROCm/" />
-    <remote name="KhronosGroup" fetch="https://github.com/KhronosGroup/" />
-    <default revision="refs/tags/rocm-6.0.2"
+    <default revision="refs/tags/rocm-6.1.0"
      remote="rocm-org"
      sync-c="true"
      sync-j="4" />
@@ -17,22 +16,20 @@
     <project name="rocminfo" />
     <project name="rocm_bandwidth_test" />
     <project name="rocprofiler" />
+    <project name="rocprofiler-register" />
     <project name="roctracer" />
-    <project path="ROCm-OpenCL-Runtime/api/opencl/khronos/icd" name="OpenCL-ICD-Loader" remote="KhronosGroup" revision="6c03f8b58fafd9dd693eaac826749a5cfad515f8" />
     <project name="clang-ocl" />
     <project name="rdc" />
 <!--HIP Projects-->
     <project name="HIP" />
+    <project name="hip-tests" />
     <project name="HIP-Examples" />
     <project name="clr" />
     <project name="hipother" />
     <project name="HIPIFY" />
-    <project name="HIPCC" />
 <!-- The following projects are all associated with the AMDGPU LLVM compiler -->
     <project name="llvm-project" />
-    <project name="ROCm-Device-Libs" />
-    <project name="ROCm-CompilerSupport" />
-    <project name="half" revision="37742ce15b76b44e4b271c1e66d13d2fa7bd003e" />
+    <project name="half" />
 <!-- gdb projects -->
     <project name="ROCgdb" />
     <project name="ROCdbgapi" />
@@ -65,6 +62,7 @@
     <project name="hipfort" />
     <project name="AMDMIGraphX" />
     <project name="ROCmValidationSuite" />
+    <project name="rocDecode" />
 <!-- Projects for OpenMP-Extras -->
     <project name="aomp" path="openmp-extras/aomp" />
     <project name="aomp-extras" path="openmp-extras/aomp-extras" />
