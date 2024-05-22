@@ -15,7 +15,7 @@ ifeq (${ENABLE_ADDRESS_SANITIZER},true)
 	SANITIZER_FLAG=-a
 endif
 
-export INFRA_REPO:=rocm-build
+export INFRA_REPO:=ROCm
 
 OUT_DIR:=$(shell . ${INFRA_REPO}/build/envsetup.sh >/dev/null 2>&1 ; echo $${OUT_DIR})
 ROCM_INSTALL_PATH:=$(shell . ${INFRA_REPO}/build/envsetup.sh >/dev/null 2>&1 ; echo $${ROCM_INSTALL_PATH})
