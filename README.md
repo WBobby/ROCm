@@ -72,12 +72,13 @@ docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-20.04-bld:2
 # Ubuntu22.04 built from docker/ubuntu22/Dockerfile.prebuild
 docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-22.04-bld:2024050301
 
+# clone source code
 mkdir -p ~/ROCm/
 cd ~/ROCm/
 ~/bin/repo init -u http://github.com/ROCm/ROCm.git -b roc-6.0.x -m 
 ~/bin/repo sync
 
-# Enter source code folder
+# Enter source code folder (follow downloading the ROCm source code)
 cd ~/ROCm/
 docker run -ti \
     -e CCACHE_DIR=$HOME/.ccache \
