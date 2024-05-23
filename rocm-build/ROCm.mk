@@ -15,10 +15,10 @@ ifeq (${ENABLE_ADDRESS_SANITIZER},true)
 	SANITIZER_FLAG=-a
 endif
 
-export INFRA_REPO:=ROCm
+export INFRA_REPO:=ROCm/rocm-build
 
-OUT_DIR:=$(shell . ${INFRA_REPO}/build/envsetup.sh >/dev/null 2>&1 ; echo $${OUT_DIR})
-ROCM_INSTALL_PATH:=$(shell . ${INFRA_REPO}/build/envsetup.sh >/dev/null 2>&1 ; echo $${ROCM_INSTALL_PATH})
+OUT_DIR:=$(shell . ${INFRA_REPO}/envsetup.sh >/dev/null 2>&1 ; echo $${OUT_DIR})
+ROCM_INSTALL_PATH:=$(shell . ${INFRA_REPO}/envsetup.sh >/dev/null 2>&1 ; echo $${ROCM_INSTALL_PATH})
 
 $(info OUT_DIR=${OUT_DIR})
 $(info ROCM_INSTALL_PATH=${ROCM_INSTALL_PATH})
@@ -165,7 +165,7 @@ T_$1: ${OUT_DIR}/logs/$1 FRC
 
 # The "upload" for $1, it uploads the packages for $1 to the central storage
 U_$1: T_$1 FRC
-	source $${INFRA_REPO}/build/envsetup.sh && $${INFRA_REPO}/build/upload_packages.sh "$1"
+	source $${INFRA_REPO}/envsetup.sh && $${INFRA_REPO}/upload_packages.sh "$1"
 	:		$1 uploaded
 
 # The "clean" for $1, it just marks the target as not existing so it will be built
@@ -183,10 +183,10 @@ else # } {
 	@echo  $1 started due to $$? | sed "s:${OUT_DIR}/logs/::g"
 # Build in a subshell so we get the time output
 # Pass in jobserver info using the RMAKE variable
-	${RMAKE}@( if set -x && source $${INFRA_REPO}/build/envsetup.sh && \
+	${RMAKE}@( if set -x && source $${INFRA_REPO}/envsetup.sh && \
 	rm -f $$@.errors $$@ $$@.repackaged && \
-	$${INFRA_REPO}/build/build_$1.sh -c && source $${INFRA_REPO}/build/ccache-env-mathlib.sh && \
-	time bash -x $${INFRA_REPO}/build/build_$1.sh $${RELEASE_FLAG} $${SANITIZER_FLAG} && $${INFRA_REPO}/build/post_inst_pkg.sh "$1" ; \
+	$${INFRA_REPO}/build_$1.sh -c && source $${INFRA_REPO}/ccache-env-mathlib.sh && \
+	time bash -x $${INFRA_REPO}/build_$1.sh $${RELEASE_FLAG} $${SANITIZER_FLAG} && $${INFRA_REPO}/post_inst_pkg.sh "$1" ; \
 	then mv $$@.inprogress $$@ ; \
 	else mv $$@.inprogress $$@.errors ; echo Error in $1 >&2 ; exit 1 ;\
 	fi ) > $$@.inprogress 2>&1
