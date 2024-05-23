@@ -82,6 +82,7 @@ export ROCM_VERSION=6.1.0   # or 6.1.1
 # Enter source code folder (follow downloading the ROCm source code)
 cd ~/ROCm/
 docker run -ti \
+    -e ROCM_VERSION=${ROCM_VERSION} \
     -e CCACHE_DIR=$HOME/.ccache \
     -e CCACHE_ENABLED=true \
     -e DOCK_WORK_FOLD=/src \
