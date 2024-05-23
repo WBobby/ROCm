@@ -75,7 +75,8 @@ docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-22.04-bld:2
 # clone source code
 mkdir -p ~/ROCm/
 cd ~/ROCm/
-~/bin/repo init -u http://github.com/ROCm/ROCm.git -b roc-6.0.x -m ROCm/rocm-build/rocm-6.1.0.xml
+export ROCM_VERSION=6.1.0   # or 6.1.1
+~/bin/repo init -u http://github.com/WBobby/ROCm.git -b roc-6.1.x -m rocm-build/rocm-${ROCM_VERSION}.xml
 ~/bin/repo sync
 
 # Enter source code folder (follow downloading the ROCm source code)
