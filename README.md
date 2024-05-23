@@ -50,7 +50,7 @@ The following example shows how to use the repo tool to download the ROCm source
 ```bash
 mkdir -p ~/ROCm/
 cd ~/ROCm/
-~/bin/repo init -u http://github.com/ROCm/ROCm.git -b roc-6.0.x
+~/bin/repo init -u http://github.com/ROCm/ROCm.git -b docs/6.1.0
 ~/bin/repo sync
 ```
 
@@ -61,6 +61,44 @@ cd ~/ROCm/
 Each ROCm component repository contains directions for building that component, such as the rocSPARSE documentation [Installation and Building for Linux](https://rocm.docs.amd.com/projects/rocSPARSE/en/latest/install/Linux_Install_Guide.html). Refer to the specific component documentation for instructions on building the repository.
 
 Each release of the ROCm software supports specific hardware and software configurations. Refer to [System requirements (Linux)](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html) for the current supported hardware and OS.
+
+### Build ROCm from source in docker
+
+#### Pulling base docker images
+
+```bash
+# Ubuntu20.04 built from docker/ubuntu20/Dockerfile.prebuild
+docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-20.04-bld:2024050301
+# Ubuntu22.04 built from docker/ubuntu22/Dockerfile.prebuild
+docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-22.04-bld:2024050301
+
+# Enter source code folder
+cd ~/ROCm/
+docker run -ti \
+    -e CCACHE_DIR=$HOME/.ccache \
+    -e CCACHE_ENABLED=true \
+    -e DOCK_WORK_FOLD=/src \
+    -w /src \
+    -v $PWD:/src \
+    -v /etc/passwd:/etc/passwd \
+    -v /etc/shadow:/etc/shadow \
+    -v ${HOME}/.ccache:${HOME}/.ccache \
+    -u $(id -u):$(id -g) \
+    <replace_with_required_ubuntu_base_docker_image> bash
+
+# Build rocm-dev packages
+make -f rocm-build/build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
+
+# Build all ROCm packages
+make -f build-infra/build/ROCm.mk -j ${NPROC:-$(nproc)} all
+
+# Find built packages in ubuntu20.04:
+out/ubuntu-20.04/20.04/deb/
+# Find built packages in ubuntu22.04:
+out/ubuntu-22.04/22.04/deb/
+```
+
+
 
 ## ROCm documentation
 
