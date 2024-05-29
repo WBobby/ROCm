@@ -63,16 +63,7 @@ Each ROCm component repository contains directions for building that component, 
 Each release of the ROCm software supports specific hardware and software configurations. Refer to [System requirements (Linux)](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html) for the current supported hardware and OS.
 
 
-#### Pulling base docker images
-
-```bash
-# Ubuntu20.04 built from docker/ubuntu20/Dockerfile.prebuild
-docker pull rocm/rocm-build-ubuntu-20.04:6.1
-# Ubuntu22.04 built from docker/ubuntu22/Dockerfile.prebuild
-docker pull rocm/rocm-build-ubuntu-22.04:6.1
-```
-
-### Build ROCm from source
+## Build ROCm from source
 
 The Build will use as many processors as it can find to build in parallel. Some of the compiles can consume as much as 10GB of RAM, so make sure you have plenty of Swap Space !
 
@@ -87,8 +78,13 @@ export ROCM_VERSION=6.1.0   # or 6.1.1
 ~/bin/repo init -u http://github.com/WBobby/ROCm.git -b roc-6.1.x -m rocm-build/rocm-${ROCM_VERSION}.xml
 ~/bin/repo sync
 
-# Enter source code folder (follow downloading the ROCm source code)
-cd ~/ROCm/
+# Pulling required base docker images:
+# Ubuntu20.04 built from docker/ubuntu20/Dockerfile
+docker pull rocm/rocm-build-ubuntu-20.04:6.1
+# Ubuntu22.04 built from docker/ubuntu22/Dockerfile
+docker pull rocm/rocm-build-ubuntu-22.04:6.1
+
+# Start docker container and mount the source code folder
 docker run -ti \
     -e ROCM_VERSION=${ROCM_VERSION} \
     -e CCACHE_DIR=$HOME/.ccache \
@@ -107,15 +103,15 @@ docker run -ti \
 export GPU_ARCHS="gfx942"               # Example
 export GPU_ARCHS="gfx940;gfx941;gfx942" # Example
 
-# When ROCm.mk located in rocm-build/build
+# When ROCm.mk located in ROCm/rocm-build
 # list all ROCm components
-make -f rocm-build/build/ROCm.mk list_components
+make -f ROCm/rocm-build/ROCm.mk list_components
 # Build rocm-dev packages
-make -f rocm-build/build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
+make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
 # Build all ROCm packages
-make -f rocm-build/build/ROCm.mk -j ${NPROC:-$(nproc)} all
+make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} all
 # Build a single ROCm packages
-make -f rocm-build/build/ROCm.mk T_half
+make -f ROCm/rocm-build/ROCm.mk T_half
 
 # Find built packages in ubuntu20.04:
 out/ubuntu-20.04/20.04/deb/
