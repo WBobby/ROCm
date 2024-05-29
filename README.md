@@ -68,9 +68,9 @@ Each release of the ROCm software supports specific hardware and software config
 
 ```bash
 # Ubuntu20.04 built from docker/ubuntu20/Dockerfile.prebuild
-docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-20.04-bld:2024050301
+docker pull rocm/rocm-build-ubuntu-20.04:6.1
 # Ubuntu22.04 built from docker/ubuntu22/Dockerfile.prebuild
-docker pull compute-artifactory.amd.com:5000/rocm-base-images/ubuntu-22.04-bld:2024050301
+docker pull rocm/rocm-build-ubuntu-22.04:6.1
 
 # clone source code
 mkdir -p ~/ROCm/
