@@ -104,12 +104,12 @@ export GPU_ARCHS="gfx942"               # Example
 export GPU_ARCHS="gfx940;gfx941;gfx942" # Example
 
 # When ROCm.mk located in ROCm/rocm-build
-# list all ROCm components
-make -f ROCm/rocm-build/ROCm.mk list_components
 # Build rocm-dev packages
 make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
 # Build all ROCm packages
 make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} all
+# list all ROCm components to find required components
+make -f ROCm/rocm-build/ROCm.mk list_components
 # Build a single ROCm packages
 make -f ROCm/rocm-build/ROCm.mk T_half
 
