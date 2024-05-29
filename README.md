@@ -72,19 +72,19 @@ The Build time will reduce significantly if we limit the GPU Architecture/s agai
 
 ```bash
 # clone source code
-mkdir -p ~/ROCm/
-cd ~/ROCm/
+mkdir -p ~/WORKSPACE/      # Or any folder name other than WORKSPACE
+cd ~/WORKSPACE/
 export ROCM_VERSION=6.1.0   # or 6.1.1
 ~/bin/repo init -u http://github.com/WBobby/ROCm.git -b roc-6.1.x -m rocm-build/rocm-${ROCM_VERSION}.xml
 ~/bin/repo sync
 
 # Pulling required base docker images:
-# Ubuntu20.04 built from docker/ubuntu20/Dockerfile
+# Ubuntu20.04 built from ROCm/rocm-build/docker/ubuntu20/Dockerfile
 docker pull rocm/rocm-build-ubuntu-20.04:6.1
-# Ubuntu22.04 built from docker/ubuntu22/Dockerfile
+# Ubuntu22.04 built from ROCm/rocm-build/docker/ubuntu22/Dockerfile
 docker pull rocm/rocm-build-ubuntu-22.04:6.1
 
-# Start docker container and mount the source code folder
+# Start docker container and mount the source code folder:
 docker run -ti \
     -e ROCM_VERSION=${ROCM_VERSION} \
     -e CCACHE_DIR=$HOME/.ccache \
@@ -98,12 +98,14 @@ docker run -ti \
     -u $(id -u):$(id -g) \
     <replace_with_required_ubuntu_base_docker_image> bash
 
+# Select GPU targets before building:
+# When GPU_ARCHS is not set, default GPU targets supported by ROCm6.1 will be used.
 # To build against a subset of GFX architectures you can use the below env variable.
 # Support MI300 (gfx940, gfx941, gfx942).
 export GPU_ARCHS="gfx942"               # Example
 export GPU_ARCHS="gfx940;gfx941;gfx942" # Example
 
-# When ROCm.mk located in ROCm/rocm-build
+# Pick and run build commands in the docker container:
 # Build rocm-dev packages
 make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
 # Build all ROCm packages
