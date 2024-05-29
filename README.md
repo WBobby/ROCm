@@ -56,13 +56,12 @@ cd ~/ROCm/
 
 **Note:** Using this sample code will cause the repo tool to download the open source code associated with the specified ROCm release. Ensure that you have ssh-keys configured on your machine for your GitHub ID prior to the download as explained at [Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh).
 
-### Building the ROCm source code
+## Building the ROCm source code
 
 Each ROCm component repository contains directions for building that component, such as the rocSPARSE documentation [Installation and Building for Linux](https://rocm.docs.amd.com/projects/rocSPARSE/en/latest/install/Linux_Install_Guide.html). Refer to the specific component documentation for instructions on building the repository.
 
 Each release of the ROCm software supports specific hardware and software configurations. Refer to [System requirements (Linux)](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html) for the current supported hardware and OS.
 
-### Build ROCm from source in docker
 
 #### Pulling base docker images
 
@@ -71,7 +70,16 @@ Each release of the ROCm software supports specific hardware and software config
 docker pull rocm/rocm-build-ubuntu-20.04:6.1
 # Ubuntu22.04 built from docker/ubuntu22/Dockerfile.prebuild
 docker pull rocm/rocm-build-ubuntu-22.04:6.1
+```
 
+### Build ROCm from source
+
+The Build will use as many processors as it can find to build in parallel. Some of the compiles can consume as much as 10GB of RAM, so make sure you have plenty of Swap Space !
+
+By default the ROCm build will compile for all supported GPU architectures and will take approximately 500 CPU hours.
+The Build time will reduce significantly if we limit the GPU Architecture/s against which we need to build by using the environment variable GPU_ARCHS as mentioned below.
+
+```bash
 # clone source code
 mkdir -p ~/ROCm/
 cd ~/ROCm/
@@ -94,17 +102,36 @@ docker run -ti \
     -u $(id -u):$(id -g) \
     <replace_with_required_ubuntu_base_docker_image> bash
 
+# To build against a subset of GFX architectures you can use the below env variable.
+# Support MI300 (gfx940, gfx941, gfx942).
+export GPU_ARCHS="gfx942"               # Example
+export GPU_ARCHS="gfx940;gfx941;gfx942" # Example
+
+# When ROCm.mk located in rocm-build/build
+# list all ROCm components
+make -f rocm-build/build/ROCm.mk list_components
 # Build rocm-dev packages
 make -f rocm-build/build/ROCm.mk -j ${NPROC:-$(nproc)} rocm-dev
-
 # Build all ROCm packages
-make -f build-infra/build/ROCm.mk -j ${NPROC:-$(nproc)} all
+make -f rocm-build/build/ROCm.mk -j ${NPROC:-$(nproc)} all
+# Build a single ROCm packages
+make -f rocm-build/build/ROCm.mk T_half
 
 # Find built packages in ubuntu20.04:
 out/ubuntu-20.04/20.04/deb/
 # Find built packages in ubuntu22.04:
 out/ubuntu-22.04/22.04/deb/
+
+# Find built logs in ubuntu20.04:
+out/ubuntu-20.04/20.04/logs/
+# Find built logs in ubuntu22.04:
+out/ubuntu-22.04/22.04/logs/
+# All logs pertaining to failed components, end with .errror extension.
+out/ubuntu-22.04/22.04/logs/rpp.errors  # Example
+# All logs pertaining to building components, end with .inprogress extension.
+out/ubuntu-22.04/22.04/logs/rocblas.inprogress  # Example
 ```
+Note: [Overview for ROCm.mk](rocm-build/README.md)
 
 ## ROCm documentation
 
