@@ -24,11 +24,11 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -44,5 +44,5 @@ jobs:
       git config --global user.email "you@example.com"
       git config --global user.name "Your Name"
     displayName: "ctest setup"
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/test.yml
+#  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/test.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

@@ -1,0 +1,45 @@
+parameters:
+- name: checkoutRepo
+  type: string
+  default: 'self'
+- name: checkoutRef
+  type: string
+  default: ''
+- name: gtestVersion
+  type: string
+  default: ''
+- name: aptPackages
+  type: object
+  default:
+    - git
+    - cmake
+    - ninja-build
+
+jobs:
+- job: gtest
+  variables:
+  - group: common
+  - template: /.azuredevops/variables-global.yml
+  pool: 
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
+  workspace:
+    clean: all
+  steps:
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
+    parameters:
+      aptPackages: ${{ parameters.aptPackages }}
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
+  - task: Bash@3
+    displayName: 'git clone gtest'
+    inputs:
+      targetType: inline
+      script: git clone -b ${{ parameters.gtestVersion }} https://github.com/google/googletest --depth=1 --shallow-submodules --recurse-submodules
+      workingDirectory: $(Agent.BuildDirectory)
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
+    parameters:
+      cmakeBuildDir: $(Agent.BuildDirectory)/googletest/build
+      extraBuildFlags: >-
+        -DGTEST_FORCE_SHARED_CRT=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+        -GNinja
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

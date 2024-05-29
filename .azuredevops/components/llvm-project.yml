@@ -13,6 +13,12 @@ parameters:
     - libnuma-dev
     - ninja-build
     - python-is-python3
+    - zlib1g-dev
+    - pkg-config
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
 
 jobs:
 - job: llvm_project
@@ -21,11 +27,11 @@ jobs:
   - template: /.azuredevops/variables-global.yml
   - name: HIP_DEVICE_LIB_PATH
     value: '$(Build.BinariesDirectory)/amdgcn/bitcode'
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
@@ -34,29 +40,45 @@ jobs:
       checkoutRepo: ${{ parameters.checkoutRepo }}
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: rocm-cmake
-        branchName: develop
-        pipelineId: $(rocm-cmake-pipeline-id)
-        testFailuresOkay: true
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: rocm-cmake
-        pipelineId: $(rocm-cmake-tagged-pipeline-id)
-        testFailuresOkay: true
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       componentName: rocm-llvm
       extraBuildFlags: >-
         -DCMAKE_PREFIX_PATH="$(Build.BinariesDirectory)/llvm;$(Build.BinariesDirectory)"
         -DCMAKE_BUILD_TYPE=Release
-        -DLLVM_ENABLE_PROJECTS=llvm;clang;lld;clang-tools-extra;mlir
+        -DLLVM_ENABLE_PROJECTS=clang;lld;clang-tools-extra;mlir
         -DLLVM_ENABLE_RUNTIMES=compiler-rt;libunwind;libcxx;libcxxabi
         -DCLANG_ENABLE_AMDCLANG=ON
         -DLLVM_TARGETS_TO_BUILD=AMDGPU;X86
+        -DLIBCXX_ENABLE_SHARED=OFF
+        -DLIBCXX_ENABLE_STATIC=ON
+        -DLIBCXX_INSTALL_LIBRARY=OFF
+        -DLIBCXX_INSTALL_HEADERS=OFF
+        -DLIBCXXABI_ENABLE_SHARED=OFF
+        -DLIBCXXABI_ENABLE_STATIC=ON
+        -DLIBCXXABI_INSTALL_STATIC_LIBRARY=OFF
+        -DLLVM_BUILD_DOCS=OFF
+        -DLLVM_ENABLE_SPHINX=OFF
+        -DLLVM_ENABLE_ASSERTIONS=OFF
+        -DLLVM_ENABLE_Z3_SOLVER=OFF
+        -DLLVM_ENABLE_ZLIB=ON
+        -DCLANG_DEFAULT_LINKER=lld
+        -DCLANG_DEFAULT_RTLIB=compiler-rt
+        -DCLANG_DEFAULT_UNWINDLIB=libgcc
+        -DSANITIZER_AMDGPU=OFF
+        -DPACKAGE_VENDOR=AMD
+        -DCLANG_LINK_FLANG_LEGACY=ON
+        -DCMAKE_CXX_STANDARD=17
         -DROCM_LLVM_BACKWARD_COMPAT_LINK=$(Build.BinariesDirectory)/llvm
         -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET=./lib/llvm
         -GNinja

@@ -16,11 +16,11 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml

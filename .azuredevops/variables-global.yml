@@ -7,15 +7,25 @@ variables:
   value: ${{ variables.CI_ROOT_PATH }}/components
 - name: CI_TEMPLATE_PATH
   value: ${{ variables.CI_ROOT_PATH }}/templates
-- name: LOW_END_BUILD_POOL
+- name: CI_DEPENDENCIES_PATH
+  value: ${{ variables.CI_ROOT_PATH }}/dependencies
+- name: BASE_BUILD_POOL
   value: ubuntu-22.04
-- name: HIGH_END_BUILD_POOL
+- name: LOW_BUILD_POOL
+  value: rocm-ci_low_build_pool
+- name: MEDIUM_BUILD_POOL
+  value: rocm-ci_medium_build_pool
+- name: HIGH_BUILD_POOL
+  value: rocm-ci_high_build_pool
+- name: ULTRA_BUILD_POOL
+  value: rocm-ci_ultra_build_pool
+- name: ON_PREM_BUILD_POOL
   value: rocm-ci_build_pool
-- name: CLOUD_BUILD_POOL
-  value: rocm-ci_cloud_build_pool
 - name: LATEST_RELEASE_TAG
   value: rocm-6.1.0
 - name: DOCKER_IMAGE_NAME
   value: rocm/dev-ubuntu-22.04
 - name: LATEST_DOCKER_VERSION
+  value: 6.1
+- name: KEYRING_VERSION
   value: 6.1

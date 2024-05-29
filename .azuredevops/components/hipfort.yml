@@ -18,11 +18,11 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
@@ -32,5 +32,5 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DHIPFORT_INSTALL_DIR=/tmp/hipfort ..
+        -DHIPFORT_INSTALL_DIR=/tmp/hipfort
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

@@ -1,0 +1,122 @@
+parameters:
+- name: checkoutRepo
+  type: string
+  default: 'self'
+- name: checkoutRef
+  type: string
+  default: ''
+- name: aptPackages
+  type: object
+  default:
+    - cmake
+    - python3-pip
+    - ninja-build
+    - pkg-config
+    - libpci-dev
+    - libnuma-dev
+    - libffi-dev
+    - git
+    - libopenmpi-dev
+    - gawk
+    - mesa-common-dev
+    - libtool
+    - libdrm-amdgpu1
+    - libdrm-dev
+    - libdw-dev
+    - libgtest-dev
+    - libsystemd-dev
+    - libssl-dev
+    - libstdc++-12-dev
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - ROCT-Thunk-Interface
+
+jobs:
+- job: aomp
+  variables:
+  - group: common
+  - template: /.azuredevops/variables-global.yml
+  pool:
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
+  workspace:
+    clean: all
+  steps:
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
+    parameters:
+      aptPackages: ${{ parameters.aptPackages }}
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
+    parameters:
+      checkoutRepo: ${{ parameters.checkoutRepo }}
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
+    parameters:
+      checkoutRepo: llvm-project_repo
+# CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
+    parameters:
+      componentName: llvm-openmp
+      extraBuildFlags: >-
+        -DOPENMP_ENABLE_LIBOMPTARGET=1
+        -DOPENMP_TEST_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+        -DOPENMP_TEST_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+        -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+        -DLIBOMPTARGET_AMDGCN_GFXLIST=gfx700;gfx701;gfx801;gfx803;gfx900;gfx902;gfx906;gfx908;gfx90a;gfx90c;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103
+        -DDEVICELIBS_ROOT=$(Build.SourcesDirectory)/llvm-project/amd/device-libs
+        -DLIBOMP_COPY_EXPORTS=OFF
+        -DLLVM_DIR=$(Agent.BuildDirectory)/rocm/llvm
+        -DLLVM_MAIN_INCLUDE_DIR=$(Build.SourcesDirectory)/llvm-project/llvm/include
+        -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$(Build.SourcesDirectory)/llvm-project/llvm/include
+        -DCUDA_TOOLKIT_ROOT_DIR=OFF
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm/llvm;$(Agent.BuildDirectory)/rocm;$(Agent.BuildDirectory)/rocm/lib/cmake
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_SKIP_BUILD_RPATH=TRUE
+        -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+        -DCMAKE_SHARED_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+        -DCMAKE_EXE_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+        -DCMAKE_MODULE_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+        -GNinja
+      cmakeBuildDir: $(Build.SourcesDirectory)/llvm-project/openmp/build
+      installDir: $(Build.BinariesDirectory)/llvm
+# offload does not exist for recent releases, so use CI conditional
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
+      parameters:
+        componentName: llvm-offload
+        extraBuildFlags: >-
+          -DOPENMP_ENABLE_LIBOMPTARGET=1
+          -DOPENMP_TEST_C_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+          -DOPENMP_TEST_CXX_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+          -DCMAKE_C_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+          -DCMAKE_CXX_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+          -DLIBOMPTARGET_AMDGCN_GFXLIST=gfx700;gfx701;gfx801;gfx803;gfx900;gfx902;gfx906;gfx908;gfx90a;gfx90c;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103
+          -DLLVM_DIR==$(Agent.BuildDirectory)/rocm/llvm
+          -DLLVM_MAIN_INCLUDE_DIR=$(Build.SourcesDirectory)/llvm-project/llvm/include
+          -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$(Build.SourcesDirectory)/llvm-project/llvm/include
+          -DCUDA_TOOLKIT_ROOT_DIR=OFF
+          -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm/llvm;$(Agent.BuildDirectory)/rocm;$(Agent.BuildDirectory)/rocm/lib/cmake
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_SKIP_BUILD_RPATH=TRUE
+          -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+          -DCMAKE_SHARED_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+          -DCMAKE_EXE_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+          -DCMAKE_MODULE_LINKER_FLAGS_INIT=-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib
+          -GNinja
+        cmakeBuildDir: $(Build.SourcesDirectory)/llvm-project/offload/build
+        installDir: $(Build.BinariesDirectory)/llvm
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

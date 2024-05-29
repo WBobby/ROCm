@@ -99,10 +99,9 @@ Tools
 
   ":doc:`AMD SMI <amdsmi:index>`", "C library for Linux that provides a user space interface for applications to monitor and control AMD devices"
   ":doc:`HIPIFY <hipify:index>`", "Translates CUDA source code into portable HIP C++"
-  "`Radeon Compute Profiler (RCP) <https://github.com/GPUOpen-Tools/radeon_compute_profiler/>`_ ", "Performance analysis tool that gathers data from the API runtime and GPU for OpenCL and ROCm/HSA applications"
   "`RocBandwidthTest <https://github.com/ROCm/rocm_bandwidth_test/>`_ ", "Captures the performance characteristics of buffer copying and kernel read/write operations"
   ":doc:`ROCmCC <./reference/rocmcc>`", "Clang/LLVM-based compiler"
-  "`ROCm CMake <https://github.com/ROCm/rocm-cmake>`_ ", "Collection of CMake modules for common build and development tasks"
+  ":doc:`ROCm CMake <rocmcmakebuildtools:index>`", "Collection of CMake modules for common build and development tasks"
   ":doc:`ROCm Data Center Tool <rdc:index>`", "Simplifies administration and addresses key infrastructure challenges in AMD GPUs in cluster and data-center environments"
   "`ROCm Debug Agent (ROCdebug-agent) <https://github.com/ROCm/rocr_debug_agent/>`_ ", "Prints the state of all AMD GPU wavefronts that caused a queue error by sending a SIGQUIT signal to the process while the program is running"
   ":doc:`ROCm Debugger (ROCgdb) <rocgdb:index>`", "Source-level debugger for Linux, based on the GNU Debugger (GDB)"
@@ -133,4 +132,4 @@ Runtimes
 
   "`AMD Common Language Runtime (CLR) <https://github.com/ROCm/clr>`_", "Contains source code for AMD's common language runtimes: :doc:`HIP <hip:index>` and OpenCL"
   ":doc:`HIP <hip:index>`", "AMD's GPU programming language extension and the GPU runtime"
-  "`ROCR-Runtime <https://github.com/ROCm/ROCR-Runtime/>`_ ", "User-mode API interfaces and libraries necessary for host applications to launch compute kernels on available HSA ROCm kernel agents"
+  ":doc:`ROCR-Runtime <rocr-runtime:index>`", "User-mode API interfaces and libraries necessary for host applications to launch compute kernels on available HSA ROCm kernel agents"

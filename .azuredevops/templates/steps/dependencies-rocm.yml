@@ -1,0 +1,132 @@
+# download and install rocm dependencies through pipeline builds in the project
+# REQUIRED
+parameters:
+- name: dependencyList
+  type: object
+  default: []
+- name: dependencySource
+  type: string
+  default: staging
+  values:
+    - staging
+    - tag-builds
+    - fixed
+# required values for fixed selection
+- name: fixedPipelineIdentifier
+  type: string
+  default: 0
+- name: fixedComponentName
+  type: string
+  default: ''
+# match case of the repo in this object for the left side of the maps
+# should not need to replace these parameters
+- name: stagingPipelineIdentifiers
+  type: object
+  default:
+    aomp: $(aomp-pipeline-id)
+    aomp-extras: $(aomp-extras-pipeline-id)
+    AMDMIGraphX: $(amdmigraphx-pipeline-id)
+    clr: $(clr-pipeline-id)
+    composable_kernel: $(composable-kernel-pipeline-id)
+    half: $(half-pipeline-id)
+    hipBLAS: $(hipblas-pipeline-id)
+    HIPIFY: $(hipify-pipeline-id)
+    hipRAND: $(hiprand-pipeline-id)
+    hipSPARSE: $(hipsparse-pipeline-id)
+    llvm-project: $(llvm-project-pipeline-id)
+    MIOpen: $(miopen-pipeline-id)
+    rocBLAS: $(rocblas-pipeline-id)
+    ROCdbgapi : $(rocdbgapi-pipeline-id)
+    rocDecode: $(rocdecode-pipeline-id)
+    rocFFT: $(rocfft-pipeline-id)
+    rocm-cmake: $(rocm-cmake-pipeline-id)
+    rocm-core: $(rocm-core-pipeline-id)
+    rocm_smi_lib: $(rocm-smi-lib-pipeline-id)
+    rocminfo: $(rocminfo-pipeline-id)
+    rocMLIR: $(rocmlir-pipeline-id)
+    rocm-smi-lib: $(rocm-smi-lib-pipeline-id)
+    rocPRIM: $(rocprim-pipeline-id)
+    rocprofiler-register: $(rocprofiler-register-pipeline-id)
+    ROCR-Runtime: $(rocr-runtime-pipeline-id)
+    rocRAND: $(rocrand-pipeline-id)
+    rocSOLVER: $(rocsolver-pipeline-id)
+    rocSPARSE: $(rocsparse-pipeline-id)
+    ROCT-Thunk-Interface: $(roct-thunk-interface-pipeline-id)
+    roctracer: $(roctracer-pipeline-id)
+    rpp: $(rpp-pipeline-id)
+- name: taggedPipelineIdentifiers
+  type: object
+  default:
+    aomp: $(aomp-tagged-pipeline-id)
+    aomp-extras: $(aomp-extras-tagged-pipeline-id)
+    AMDMIGraphX: $(amdmigraphx-tagged-pipeline-id)
+    clr: $(clr-tagged-pipeline-id)
+    composable_kernel: $(composable-kernel-tagged-pipeline-id)
+    half: $(half-tagged-pipeline-id)
+    hipBLAS: $(hipblas-tagged-pipeline-id)
+    HIPIFY: $(hipify-tagged-pipeline-id)
+    hipRAND: $(hiprand-tagged-pipeline-id)
+    hipSPARSE: $(hipsparse-tagged-pipeline-id)
+    llvm-project: $(llvm-project-tagged-pipeline-id)
+    MIOpen: $(miopen-tagged-pipeline-id)
+    rocBLAS: $(rocblas-tagged-pipeline-id)
+    ROCdbgapi : $(rocdbgapi-tagged-pipeline-id)
+    rocDecode: $(rocdecode-tagged-pipeline-id)
+    rocFFT: $(rocfft-tagged-pipeline-id)
+    rocm-cmake: $(rocm-cmake-tagged-pipeline-id)
+    rocm-core: $(rocm-core-tagged-pipeline-id)
+    rocm_smi_lib: $(rocm-smi-lib-tagged-pipeline-id)
+    rocminfo: $(rocminfo-tagged-pipeline-id)
+    rocMLIR: $(rocmlir-tagged-pipeline-id)
+    rocm-smi-lib: $(rocm-smi-lib-tagged-pipeline-id)
+    rocPRIM: $(rocprim-tagged-pipeline-id)
+    rocprofiler-register: $(rocprofiler-register-tagged-pipeline-id)
+    ROCR-Runtime: $(rocr-runtime-tagged-pipeline-id)
+    rocRAND: $(rocrand-tagged-pipeline-id)
+    rocSOLVER: $(rocsolver-tagged-pipeline-id)
+    rocSPARSE: $(rocsparse-tagged-pipeline-id)
+    ROCT-Thunk-Interface: $(roct-thunk-interface-tagged-pipeline-id)
+    roctracer: $(roctracer-tagged-pipeline-id)
+    rpp: $(rpp-tagged-pipeline-id)
+# set to true if you're calling this template file multiple files in same pipeline
+# only leave last call false to optimize sequence
+- name: skipLibraryLinking
+  type: boolean
+  default: false
+
+steps:
+# assuming artifact-download.yml template file in same directory
+- ${{ each dependency in parameters.dependencyList }}:
+  - ${{ if eq(parameters.dependencySource, 'staging') }}:
+    - template: artifact-download.yml
+      parameters:
+        componentName: ${{ dependency }}
+        pipelineId: ${{ parameters.stagingPipelineIdentifiers[dependency] }}
+  - ${{ if eq(parameters.dependencySource, 'tag-builds') }}:
+    - template: artifact-download.yml
+      parameters:
+        componentName: ${{ dependency }}
+        pipelineId: ${{ parameters.taggedPipelineIdentifiers[dependency] }}
+# fixed case only accepts one component at a time, so no array input
+- ${{ if eq(parameters.dependencySource, 'fixed') }}:
+  - template: artifact-download.yml
+    parameters:
+      componentName: ${{ parameters.fixedComponentName }}
+      pipelineId: ${{ parameters.fixedPipelineIdentifier }}
+- task: Bash@3
+  displayName: 'list downloaded ROCm files'
+  inputs:
+    targetType: inline
+    script: ls -1R $(Agent.BuildDirectory)/rocm
+- ${{ if eq(parameters.skipLibraryLinking, false) }}:
+  - task: Bash@3
+    displayName: 'link ROCm shared libraries'
+    inputs:
+      targetType: inline
+# OS ignores if the ROCm lib folder shows up more than once
+      script: |
+        echo $(Agent.BuildDirectory)/rocm/lib | sudo tee -a /etc/ld.so.conf
+        echo $(Agent.BuildDirectory)/rocm/llvm/lib | sudo tee -a /etc/ld.so.conf
+        sudo cat /etc/ld.so.conf
+        sudo ldconfig -v
+        ldconfig -p

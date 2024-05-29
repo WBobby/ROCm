@@ -10,51 +10,54 @@ parameters:
   default:
     - cmake
     - ninja-build
-    - composablekernel-dev
+    - python3-pip
     - git
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - composable_kernel
 
 jobs:
 - job: hipTensor
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
-  # CI case: download latest default branch build
+# CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: llvm-project
-        branchName: amd-staging
-        pipelineId: $(llvm-project-pipeline-id)
-  # manual build case: triggered by ROCm/ROCm repo
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: \tag-builds\llvm-project
-        pipelineId: $(llvm-project-tagged-pipeline-id)
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_CXX_COMPILER=hipcc
-        -DCMAKE_CC_COMPILER=hipcc
-        -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm/llvm"
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm;$(Agent.BuildDirectory)/rocm/llvm
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang++
         -DROCM_PATH="$(Agent.BuildDirectory)/rocm"
         -DCMAKE_BUILD_TYPE=Release
-        -DHIPTENSOR_BUILD_TESTS=OFF
-        -DAMDGPU_TARGETS=gfx1100
+        -DHIPTENSOR_BUILD_TESTS=ON
+        -DAMDGPU_TARGETS=gfx1030;gfx1100
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
-  

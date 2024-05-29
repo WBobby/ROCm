@@ -16,13 +16,13 @@ jobs:
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   container:
     image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
@@ -33,8 +33,8 @@ jobs:
     parameters:
       extraBuildFlags: >-
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
-        -DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang
+        -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/amdclang++
+        -DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/amdclang
         -DCMAKE_PREFIX_PATH=/opt/rocm
         -DBUILD_FAT_LIBROCKCOMPILER=1
         -GNinja

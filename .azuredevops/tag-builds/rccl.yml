@@ -1,6 +1,6 @@
 variables:
 - group: common
-- template: /.azuredevops/variables-global.yml@pipelines_repo
+- template: /.azuredevops/variables-global.yml
 
 parameters:
 - name: checkoutRef
@@ -23,7 +23,7 @@ trigger: none
 pr: none
 
 jobs:
-  - template: ${{ variables.CI_COMPONENT_PATH }}/rccl.yml@pipelines_repo
+  - template: ${{ variables.CI_COMPONENT_PATH }}/rccl.yml
     parameters:
       checkoutRepo: release_repo
       checkoutRef: ${{ parameters.checkoutRef }}

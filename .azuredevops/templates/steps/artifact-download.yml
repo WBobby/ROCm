@@ -6,12 +6,49 @@ parameters:
 - name: pipelineId
   type: string
   default: ''
+- name: useDefaultBranch
+  type: boolean
+  default: true
+- name: defaultBranchList
+  type: object
+  default:
+    aomp: aomp-dev
+    aomp-extras: aomp-dev
+    AMDMIGraphX: develop
+    clr: develop
+    composable_kernel: develop
+    half: master
+    HIP: develop
+    hipBLAS: develop
+    hipRAND: develop
+    hipSPARSE: develop
+    llvm-project: amd-staging
+    MIOpen: develop
+    rocBLAS: develop
+    ROCdbgapi : amd-master
+    rocDecode: develop
+    rocFFT: develop
+    rocm-cmake: develop
+    rocm_smi_lib: develop
+    rocminfo: master
+    rocMLIR: develop
+    rocPRIM: develop
+    rocprofiler-register: amd-mainline
+    ROCR-Runtime: master
+    rocRAND: develop
+    rocSOLVER: develop
+    rocSPARSE: develop
+    ROCT-Thunk-Interface: master
+    roctracer: amd-master
+    rpp: master
+- name: componentsFailureOkay
+  type: object
+  default:
+    - rocm-cmake
+# BELOW REQUIRED IF useDefaultBranch false
 - name: branchName
   type: string
   default: '$(Build.SourceBranchName)' # for tagged builds
-- name: testFailuresOkay
-  type: boolean
-  default: false
 
 steps:
 - task: DownloadPipelineArtifact@2
@@ -19,21 +56,25 @@ steps:
   inputs:
     buildType: 'specific'
     project: ROCm-CI
-    pipeline: ${{ parameters.pipelineId }}
+    definition: ${{ parameters.pipelineId }}
     specificBuildWithTriggering: true
-    allowPartiallySucceededBuilds: ${{ parameters.testFailuresOkay }}
-    branchName: ${{ parameters.branchName }}
-    targetPath: '$(System.ArtifactsDirectory)'
+    ${{ if eq(parameters.useDefaultBranch, true) }}:
+      branchName: ${{ parameters.defaultBranchList[parameters.componentName] }}
+    ${{ else }}:
+      branchName: ${{ parameters.branchName }}
+    ${{ if in(parameters.componentName, parameters.componentsFailureOkay) }}:
+      allowPartiallySucceededBuilds: true
+    targetPath: '$(Pipeline.Workspace)/d'
 - task: ExtractFiles@1
   displayName: Extract ${{ parameters.componentName }}
   inputs:
-    archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.tar.gz'
+    archiveFilePatterns: '$(Pipeline.Workspace)/d/**/*.tar.gz'
     destinationFolder: '$(Agent.BuildDirectory)/rocm'
     cleanDestinationFolder: false
     overwriteExistingFiles: true
 - task: DeleteFiles@1
   displayName: Cleanup Compressed ${{ parameters.componentName }}
   inputs:
-    SourceFolder: '$(System.ArtifactsDirectory)'
-    Contents: '/**/*.tar.gz'
+    SourceFolder: '$(Pipeline.Workspace)/d'
+    Contents: '**/*.tar.gz'
     RemoveDotFiles: true

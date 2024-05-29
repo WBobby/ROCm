@@ -15,21 +15,18 @@ parameters:
 steps:
 - task: Bash@3
   displayName: '${{ parameters.componentName }} configure flags'
-  continueOnError: true
   inputs:
     targetType: inline
     script: ./configure --prefix=${{ parameters.installDir }} ${{ parameters.configureFlags }}
     workingDirectory: ${{ parameters.buildDir }}
 - task: Bash@3
   displayName: '${{ parameters.componentName }} make'
-  continueOnError: true
   inputs:
     targetType: inline
     script: make -j$(nproc)
     workingDirectory: ${{ parameters.buildDir }}
 - task: Bash@3
   displayName: '${{ parameters.componentName }} make install'
-  continueOnError: true
   inputs:
     targetType: inline
     script: make install

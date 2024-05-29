@@ -8,35 +8,69 @@ parameters:
 - name: aptPackages
   type: object
   default:
+    - python3-pip
     - cmake
     - libboost-program-options-dev
     - googletest
     - libfftw3-dev
     - git
     - ninja-build
+    - libstdc++-12-dev
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocm-smi-lib
+    - rocprofiler-register
+    - rocm-core
+    - HIPIFY
+    - aomp
+    - aomp-extras
+
 jobs:
 - job: rccl
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  - name: HIP_ROCCLR_HOME
+    value: $(Build.BinariesDirectory)/rocm
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+  # CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+  # manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_CXX_COMPILER=hipcc
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/bin/hipcc
+        -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/bin/hipcc
+        -DHALF_INCLUDE_DIR=$(Agent.BuildDirectory)/rocm/include
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_PREFIX_PATH="/opt/rocm;/opt/rocm/share/rocm/cmake/" 
+        -DROCM_PATH=$(Agent.BuildDirectory)/rocm
+        -DBUILD_TESTS=ON
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm;$(Agent.BuildDirectory)/rocm/share/rocm/cmake/
+        -DAMDGPU_TARGETS=gfx1030;gfx1100
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

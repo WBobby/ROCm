@@ -5,6 +5,11 @@ parameters:
 - name: checkoutRef
   type: string
   default: ''
+- name: rocmDependencies
+  type: object
+  default:
+    - ROCR-Runtime
+    - rocprofiler-register
 
 jobs:
 - job: rocminfo
@@ -12,7 +17,7 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
@@ -22,21 +27,19 @@ jobs:
       checkoutRepo: ${{ parameters.checkoutRepo }}
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: ROCR-Runtime
-        branchName: master
-        pipelineId: $(rocr-runtime-pipeline-id)
-        testFailuresOkay: true
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: ROCR-Runtime
-        pipelineId: $(rocr-runtime-tagged-pipeline-id)
-        testFailuresOkay: true
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm"
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
+        -DROCRTST_BLD_TYPE=release
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

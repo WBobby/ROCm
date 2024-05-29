@@ -37,7 +37,7 @@ steps:
 # equivalent to running make $cmakeTarget from $cmakeBuildDir
 # e.g., make install
 - task: CMake@1
-  displayName: '${{parameters.componentName }} Install'
+  displayName: '${{parameters.componentName }} ${{ parameters.cmakeTarget }}'
   inputs:
     workingDirectory: ${{ parameters.cmakeBuildDir }}
     cmakeArgs: '--build ${{ parameters.cmakeTargetDir }} --target ${{ parameters.cmakeTarget }}'

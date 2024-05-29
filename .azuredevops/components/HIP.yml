@@ -14,6 +14,17 @@ parameters:
   type: object
   default:
     - CppHeaderParser
+- name: rocmDependenciesAMD
+  type: object
+  default:
+    - llvm-project
+    - ROCT-Thunk-Interface
+    - ROCR-Runtime
+    - rocprofiler-register
+- name: rocmDependenciesNvidia
+  type: object
+  default:
+    - llvm-project
 
 # hip and clr are tightly-coupled
 # run this same template for both repos
@@ -27,11 +38,11 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -44,61 +55,29 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: matching_repo
-# download tasks has built in 4x retry download count
-# these will download last passing build for that branch
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: llvm-project
-        branchName: amd-staging
-        pipelineId: $(llvm-project-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: ROCT-Thunk-Interface
-        branchName: master
-        pipelineId: $(roct-thunk-interface-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: ROCR-Runtime
-        branchName: master
-        pipelineId: $(rocr-runtime-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: rocprofiler-register
-        branchName: amd-mainline
-        pipelineId: $(rocprofiler-register-pipeline-id)
+        dependencyList: ${{ parameters.rocmDependenciesAMD }}
+        dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: llvm-project
-        pipelineId: $(llvm-project-tagged-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: ROCT-Thunk-Interface
-        pipelineId: $(roct-thunk-interface-tagged-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: ROCR-Runtime
-        pipelineId: $(rocr-runtime-tagged-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: rocprofiler-register
-        pipelineId: $(rocprofiler-register-tagged-pipeline-id)
-  - script: 'ls -1R $(Agent.BuildDirectory)/rocm'
-    displayName: 'Artifact listing'
+        dependencyList: ${{ parameters.rocmDependenciesAMD }}
+        dependencySource: tag-builds
 # compile clr
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       componentName: clr
       cmakeBuildDir: 'clr/build'
       extraBuildFlags: >-
-        -DHIP_COMMON_DIR="$(Build.SourcesDirectory)/HIP"
+        -DHIP_COMMON_DIR=$(Build.SourcesDirectory)/HIP
         -DHIP_PLATFORM=amd
-        -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm"
-        -DROCM_PATH="$(Agent.BuildDirectory)/rocm"
-        -DHIPCC_BIN_DIR="$(Agent.BuildDirectory)/rocm/bin"
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
+        -DROCM_PATH=$(Agent.BuildDirectory)/rocm
+        -DHIPCC_BIN_DIR=$(Agent.BuildDirectory)/rocm/bin
         -DCLR_BUILD_HIP=ON
         -DCLR_BUILD_OCL=ON
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
@@ -111,11 +90,11 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -131,21 +110,18 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: hipother_repo
-# download tasks has built in 4x retry download count
-# these will download last passing build for that branch
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: llvm-project
-        branchName: amd-staging
-        pipelineId: $(llvm-project-pipeline-id)
+        dependencyList: ${{ parameters.rocmDependenciesNvidia }}
+        dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: llvm-project
-        pipelineId: $(llvm-project-tagged-pipeline-id)
+        dependencyList: ${{ parameters.rocmDependenciesNvidia }}
+        dependencySource: tag-builds
   - script: 'ls -1R $(Agent.BuildDirectory)/rocm'
     displayName: 'Artifact listing'
 # compile clr
@@ -154,12 +130,12 @@ jobs:
       componentName: clr
       cmakeBuildDir: 'clr/build'
       extraBuildFlags: >-
-        -DHIP_COMMON_DIR="$(Build.SourcesDirectory)/HIP"
+        -DHIP_COMMON_DIR=$(Build.SourcesDirectory)/HIP
         -DHIP_PLATFORM=nvidia
-        -DHIPCC_BIN_DIR="$(Agent.BuildDirectory)/rocm/bin"
+        -DHIPCC_BIN_DIR=$(Agent.BuildDirectory)/rocm/bin
         -DCLR_BUILD_HIP=ON
         -DCLR_BUILD_OCL=OFF
-        -DHIPNV_DIR="$(Build.SourcesDirectory)/hipother/hipnv"
+        -DHIPNV_DIR=$(Build.SourcesDirectory)/hipother/hipnv
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
     parameters:
       artifactName: nvidia

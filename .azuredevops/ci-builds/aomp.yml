@@ -1,0 +1,33 @@
+variables:
+- group: common
+- template: /.azuredevops/variables-global.yml
+
+resources:
+  repositories:
+  - repository: release_repo
+    type: github
+    endpoint: ROCm
+    name: ROCm/aomp
+    ref: ${{ parameters.checkoutRef }}
+  - repository: llvm-project_repo
+    type: github
+    endpoint: ROCm
+    name: ROCm/llvm-project
+    ref: ${{ parameters.checkoutRef }}
+  pipelines:
+  - pipeline: rocr-runtime_pipeline
+    source: \ROCR-Runtime
+    trigger:
+      branches:
+        include:
+        - master
+
+# this job will only be triggered after successful build sequence of llvm-project and ROCR-Runtime
+
+trigger: none
+pr: none
+
+jobs:
+  - template: ${{ variables.CI_COMPONENT_PATH }}/aomp.yml
+    parameters:
+      checkoutRepo: release_repo

@@ -14,10 +14,6 @@ parameters:
     - wget
     - unzip
     - pkg-config
-    - half
-    - rocblas-dev
-    - miopen-hip-dev
-    - migraphx-dev
     - protobuf-compiler
     - libprotoc-dev
     - ffmpeg
@@ -25,8 +21,6 @@ parameters:
     - libavformat-dev
     - libavutil-dev
     - libswscale-dev
-    - rpp
-    - rpp-dev
     - build-essential
     - libgtk2.0-dev
     - libavcodec-dev
@@ -39,6 +33,7 @@ parameters:
     - libtiff-dev
     - libdc1394-dev
     - libgmp-dev
+    - libopencv-dev
 - name: pipModules
   type: object
   default:
@@ -48,19 +43,33 @@ parameters:
     - google==3.0.0
     - protobuf==3.12.4
     - onnx==1.12.0
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocprofiler-register
+    - half
+    - rocBLAS
+    - MIOpen
+    - AMDMIGraphX
+    - rpp
+    - rocDecode
 
 jobs:
 - job: MIVisionX
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  pool:
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -68,13 +77,23 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+# CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
         -DCMAKE_BUILD_TYPE=Release
-        -DROCM_PATH=/opt/rocm
-        -DBUILD_DEV=ON
+        -DROCM_PATH=$(Agent.BuildDirectory)/rocm
         -DROCM_DEP_ROCMCORE=ON
-        -DROCAL_PYTHON=OFF
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

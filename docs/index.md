@@ -37,12 +37,13 @@ Our documentation is organized into the following categories:
 * Windows
   * {doc}`Windows install guide<rocm-install-on-windows:how-to/install>`
   * {doc}`Application deployment guidelines<rocm-install-on-windows:conceptual/deployment-guidelines>`
-* {doc}`Install Docker containers<rocm-install-on-linux:how-to/docker>`
-* {doc}`PyTorch for ROCm<rocm-install-on-linux:how-to/3rd-party/pytorch-install>`
-* {doc}`TensorFlow for ROCm<rocm-install-on-linux:how-to/3rd-party/tensorflow-install>`
-* {doc}`JAX for ROCm<rocm-install-on-linux:how-to/3rd-party/jax-install>`
-* {doc}`MAGMA for ROCm<rocm-install-on-linux:how-to/3rd-party/magma-install>`
-* {doc}`ROCm & Spack<rocm-install-on-linux:how-to/spack>`
+* [Deep learning frameworks](./how-to/deep-learning-rocm.rst)
+  * {doc}`Install Docker containers<rocm-install-on-linux:how-to/docker>`
+  * {doc}`PyTorch for ROCm<rocm-install-on-linux:how-to/3rd-party/pytorch-install>`
+  * {doc}`TensorFlow for ROCm<rocm-install-on-linux:how-to/3rd-party/tensorflow-install>`
+  * {doc}`JAX for ROCm<rocm-install-on-linux:how-to/3rd-party/jax-install>`
+  * {doc}`MAGMA for ROCm<rocm-install-on-linux:how-to/3rd-party/magma-install>`
+  * {doc}`ROCm & Spack<rocm-install-on-linux:how-to/spack>`
 :::
 
 :::{grid-item-card}
@@ -94,7 +95,6 @@ Our documentation is organized into the following categories:
   * [MI100](./how-to/tuning-guides/mi100.md)
   * [MI200](./how-to/tuning-guides/mi200.md)
   * [RDNA2](./how-to/tuning-guides/w6000-v620.md)
-* [Setting up for deep learning with ROCm](./how-to/deep-learning-rocm.md)
 * [GPU-enabled MPI](./how-to/gpu-enabled-mpi.rst)
 * [Using compiler features](./conceptual/compiler-topics.md)
   * [Using AddressSanitizer](./conceptual/using-gpu-sanitizer.md)
@@ -115,6 +115,7 @@ Our documentation is organized into the following categories:
   * [MI250](./conceptual/gpu-arch/mi250.md)
   * [MI300](./conceptual/gpu-arch/mi300.md)
 * [GPU memory](./conceptual/gpu-memory.md)
+* [Setting the number of CUs](./conceptual/setting-cus)
 * [File structure (Linux FHS)](./conceptual/file-reorg.md)
 * [GPU isolation techniques](./conceptual/gpu-isolation.md)
 * [Using CMake](./conceptual/cmake-packages.rst)

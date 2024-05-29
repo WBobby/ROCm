@@ -1,13 +1,14 @@
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="Tuning guides">
+  <meta name="description" content="AMD hardware optimization for specific workloads">
   <meta name="keywords" content="high-performance computing, HPC, Instinct accelerators,
   Radeon, tuning, tuning guide, AMD, ROCm">
 </head>
 
-# Tuning guides
+# System optimization
 
-Use case-specific system setup and tuning guides.
+This guide outlines system setup and tuning suggestions for AMD hardware to optimize performance for specific types of
+workloads or use-cases.
 
 ## High-performance computing
 

@@ -10,46 +10,78 @@ parameters:
   default:
     - cmake
     - ninja-build
-    - rocblas
-    - rocsparse
-    - rocsolver
     - gfortran
-    - libopenblas-dev
+    - googletest
     - git
+    - libgtest-dev
+    - wget
+    - python3-pip
+    - libomp-dev
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocprofiler-register
+    - rocBLAS
+    - rocSPARSE
+    - rocSOLVER
+    - aomp
 
 jobs:
 - job: hipBLAS
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
-# build external gtest and lapack
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
-    parameters:
-      componentName: external
-      cmakeBuildDir: 'deps/build'
-      installDir: '$(Pipeline.Workspace)/deps-install'
+  - task: Bash@3
+    displayName: 'Download AOCL'
+    inputs:
+      targetType: inline
+      script: wget -nv https://download.amd.com/developer/eula/aocl/aocl-4-1/aocl-linux-aocc-4.1.0_1_amd64.deb
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Install AOCL'
+    inputs:
+      targetType: inline
+      script: sudo apt install --yes ./aocl-linux-aocc-4.1.0_1_amd64.deb
+      workingDirectory: '$(Pipeline.Workspace)'
+# CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake
-        -DCMAKE_PREFIX_PATH="/opt/rocm;$(Pipeline.Workspace)/deps-install"
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_COMPILER=hipcc
-        -DCMAKE_C_COMPILER=hipcc
-        -DAMDGPU_TARGETS=gfx1100
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang++
+        -DAMDGPU_TARGETS=gfx1030;gfx1100
         -DHIP_PLATFORM=amd
+        -DBUILD_CLIENTS_TESTS=ON
+        -DBUILD_CLIENTS_BENCHMARKS=OFF
+        -DBUILD_CLIENTS_SAMPLES=OFF
+        -DCPACK_SET_DESTDIR=OFF
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

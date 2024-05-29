@@ -15,7 +15,7 @@ jobs:
   - group: common
   - template: /.azuredevops/variables-global.yml
   pool:
-    vmImage: ${{ variables.LOW_END_BUILD_POOL }}
+    vmImage: ${{ variables.BASE_BUILD_POOL }}
   workspace:
     clean: all
   steps:
@@ -24,6 +24,7 @@ jobs:
   - checkout: none
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
     parameters:
+      useDefaultBranch: false
       componentName: HIP
       branchName: develop
   - template:  ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-prepare-package.yml

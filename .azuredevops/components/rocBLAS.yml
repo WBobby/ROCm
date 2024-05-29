@@ -13,23 +13,47 @@ parameters:
     - python3-venv
     - git
     - libmsgpack-dev
+    - gfortran
+    - libopenblas-dev
+    - googletest
+    - libgtest-dev
+    - wget
+    - python3-pip
+    - libdrm-dev
 - name: pipModules
   type: object
   default:
     - joblib
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocprofiler-register
 
 jobs:
 - job: rocBLAS
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  - name: HIP_ROCCLR_HOME
+    value: $(Build.BinariesDirectory)/rocm
+  - name: TENSILE_ROCM_ASSEMBLER_PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin/clang
+  - name: CMAKE_CXX_COMPILER
+    value: $(Agent.BuildDirectory)/rocm/bin/hipcc
+  - name: TENSILE_ROCM_OFFLOAD_BUNDLER_PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin/clang-offload-bundler
+  - name: PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin:$(Agent.BuildDirectory)/rocm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -37,20 +61,36 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+# CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
+  - script: echo $PATH
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
         -DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake
-        -DCMAKE_PREFIX_PATH=/opt/rocm
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm/llvm;$(Agent.BuildDirectory)/rocm;$(Pipeline.Workspace)/deps-install
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_COMPILER=hipcc
-        -DCMAKE_C_COMPILER=hipcc
-        -DAMDGPU_TARGETS=gfx1100
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/bin/hipcc
+        -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/bin/hipcc
+        -DAMDGPU_TARGETS=gfx1030;gfx1100
         -DTensile_CODE_OBJECT_VERSION=default
         -DTensile_LOGIC=asm_full
         -DTensile_SEPARATE_ARCHITECTURES=ON
         -DTensile_LAZY_LIBRARY_LOADING=ON
         -DTensile_LIBRARY_FORMAT=msgpack
-        -DTENSILE_VENV_UPGRADE_PIP=ON
+        -DBUILD_CLIENTS_TESTS=ON
+        -DBUILD_CLIENTS_BENCHMARKS=OFF
+        -DBUILD_CLIENTS_SAMPLES=OFF
+        -DROCM_PATH=$(Agent.BuildDirectory)/rocm
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

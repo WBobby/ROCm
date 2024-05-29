@@ -12,10 +12,8 @@ parameters:
     - cmake
     - ninja-build
     - libnuma-dev
-    - miopen-hip-dev
-    - openmp-extras
+    - python3-pip
     - python3-venv
-    - rocblas-dev
     - libtbb-dev
     - nlohmann-json3-dev
     - libmsgpack-dev
@@ -23,7 +21,6 @@ parameters:
     - libprotobuf-dev
     - protobuf-compiler
     - python3-pybind11
-    - composablekernel-dev
 - name: pipModules
   type: object
   default:
@@ -34,19 +31,31 @@ parameters:
     - pytest==6.0.1
     - packaging==23.0
     - protobuf==3.20.2
+- name: rocmDependencies
+  type: object
+  default:
+    - rocm-cmake
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocMLIR
+    - MIOpen
+    - aomp
+    - aomp-extras
+    - rocBLAS
+    - composable_kernel
 
 jobs:
 - job: AMDMIGraphX
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
-  pool: ${{ variables.CLOUD_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
+  pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
   steps:
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies.yml
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
@@ -54,54 +63,35 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+# half version should be fixed to 5.6.0
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+    parameters:
+      dependencySource: fixed
+      fixedComponentName: half
+      fixedPipelineIdentifier: $(half560-pipeline-id)
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: rocm-cmake
-        branchName: develop
-        pipelineId: $(rocm-cmake-pipeline-id)
-        testFailuresOkay: true
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: half
-        branchName: master
-        pipelineId: $(half-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: rocmlir
-        branchName: develop
-        pipelineId: $(rocmlir-pipeline-id)
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
-        componentName: \tag-builds\rocm-cmake
-        pipelineId: $(rocm-cmake-tagged-pipeline-id)
-        testFailuresOkay: true
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: \tag-builds\half
-        pipelineId: $(half-tagged-pipeline-id)
-    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-download.yml
-      parameters:
-        componentName: \tag-builds\rocmlir
-        pipelineId: $(rocmlir-tagged-pipeline-id)
-  - script: 'ls -1R /opt/rocm'
-    displayName: 'Artifact listing'
-  - script: 'ls -1R $(Agent.BuildDirectory)/rocm'
-    displayName: 'Artifact listing'
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
-        -DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang++
+        -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang
         -DCMAKE_BUILD_TYPE=Release
-        -DAMDGPU_TARGETS=gfx1100
-        -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm;/opt/rocm/llvm;opt/rocm"
-        -DHALF_INCLUDE_DIR="$(Agent.BuildDirectory)/rocm/include"
+        -DAMDGPU_TARGETS=gfx1030;gfx1100
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm/llvm;$(Agent.BuildDirectory)/rocm
+        -DHALF_INCLUDE_DIR=$(Agent.BuildDirectory)/rocm/include
         -DMIGRAPHX_USE_COMPOSABLEKERNEL=OFF
-        -DBUILD_TESTING=OFF
+        -DBUILD_TESTING=ON
         -GNinja
 # REFERENCE: https://github.com/ROCm/composable_kernel/issues/782
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
