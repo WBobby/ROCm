@@ -113,7 +113,7 @@ make -f ROCm/rocm-build/ROCm.mk -j ${NPROC:-$(nproc)} all
 # list all ROCm components to find required components
 make -f ROCm/rocm-build/ROCm.mk list_components
 # Build a single ROCm packages
-make -f ROCm/rocm-build/ROCm.mk T_half
+make -f ROCm/rocm-build/ROCm.mk T_rocblas
 
 # Find built packages in ubuntu20.04:
 out/ubuntu-20.04/20.04/deb/
