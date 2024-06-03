@@ -56,14 +56,10 @@ The following chart steps through typical installation workflows for installing 
 Find information on version compatibility and framework release notes in :doc:`Third-party support matrix
 <rocm-install-on-linux:reference/3rd-party-support-matrix>`.
 
-.. Learn how to take advantage of your ROCm-aware deep learning environment using the following tutorials.
-..
-..    * :doc:`How to use ROCm for AI <how-to/rocm-for-ai/index>`
-..
-..    * :doc:`How to fine-tune LLMs with ROCm <how-to/fine-tuning-llms/index>`
-..
-
 .. note::
 
    For guidance on installing ROCm itself, refer to :doc:`ROCm installation for Linux <rocm-install-on-linux:index>`.
 
+Learn how to use your ROCm deep learning environment for training, fine-tuning, and inference through the following guides.
+
+* :doc:`rocm-for-ai/index`

@@ -27,6 +27,7 @@ parameters:
     - rocm-cmake
     - llvm-project
     - ROCR-Runtime
+    - rocprofiler-register
     - clr
     - rocminfo
 

@@ -8,25 +8,44 @@ parameters:
 - name: aptPackages
   type: object
   default:
-    - cmake
     - ninja-build
     - python3-venv
     - libmsgpack-dev
-    - hipblas-dev
     - git
+    - python3-pip
+    - libdrm-dev
 - name: pipModules
   type: object
   default:
     - joblib
+- name: rocmDependencies
+  type: object
+  default:
+    - llvm-project
+    - ROCR-Runtime
+    - clr
+    - rocminfo
+    - rocprofiler-register
+    - hipBLAS
 
 jobs:
 - job: hipBLASLt
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
+  - name: HIP_ROCCLR_HOME
+    value: $(Build.BinariesDirectory)/rocm
+  - name: TENSILE_ROCM_ASSEMBLER_PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin/amdclang
+  - name: CMAKE_CXX_COMPILER
+    value: $(Agent.BuildDirectory)/rocm/bin/hipcc
+  - name: TENSILE_ROCM_OFFLOAD_BUNDLER_PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin/clang-offload-bundler
+  - name: TENSILE_ROCM_PATH
+    value: $(Agent.BuildDirectory)/rocm/bin/hipcc
+  - name: PATH
+    value: $(Agent.BuildDirectory)/rocm/llvm/bin:$(Agent.BuildDirectory)/rocm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
   pool: ${{ variables.MEDIUM_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
   workspace:
     clean: all
   steps:
@@ -34,21 +53,36 @@ jobs:
     parameters:
       aptPackages: ${{ parameters.aptPackages }}
       pipModules: ${{ parameters.pipModules }}
+  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-cmake-latest.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+  # CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
+  - script: sudo ln -s $(Agent.BuildDirectory)/rocm /opt/rocm
+    displayName: ROCm symbolic link
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_COMPILER=/opt/rocm/bin/amdclang++
-        -DCMAKE_C_COMPILER=/opt/rocm/bin/amdclang
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang++
+        -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang
         -DAMDGPU_TARGETS=gfx90a
         -DTensile_LOGIC=
         -DTensile_CPU_THREADS=
         -DTensile_CODE_OBJECT_VERSION=default
         -DTensile_LIBRARY_FORMAT=msgpack
-        -DCMAKE_PREFIX_PATH="/opt/rocm"
+        -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm"
         -GNinja
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml

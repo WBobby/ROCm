@@ -12,6 +12,7 @@ parameters:
 - name: defaultBranchList
   type: object
   default:
+    amdsmi: develop
     aomp: aomp-dev
     aomp-extras: aomp-dev
     AMDMIGraphX: develop

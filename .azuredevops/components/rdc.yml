@@ -27,6 +27,7 @@ parameters:
     - clr
     - rocminfo
     - rocm-smi-lib
+    - amdsmi
 
 jobs:
 - job: rdc

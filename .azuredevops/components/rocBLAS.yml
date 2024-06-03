@@ -33,6 +33,10 @@ parameters:
     - clr
     - rocminfo
     - rocprofiler-register
+    - rocm-smi-lib
+    - rocm-core
+    - aomp
+    - aomp-extras
 
 jobs:
 - job: rocBLAS
@@ -47,8 +51,6 @@ jobs:
     value: $(Agent.BuildDirectory)/rocm/bin/hipcc
   - name: TENSILE_ROCM_OFFLOAD_BUNDLER_PATH
     value: $(Agent.BuildDirectory)/rocm/llvm/bin/clang-offload-bundler
-  - name: PATH
-    value: $(Agent.BuildDirectory)/rocm/llvm/bin:$(Agent.BuildDirectory)/rocm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
   pool: ${{ variables.MEDIUM_BUILD_POOL }}
   workspace:
     clean: all
@@ -63,12 +65,36 @@ jobs:
       checkoutRepo: ${{ parameters.checkoutRepo }}
 # CI case: download latest default branch build
   - ${{ if eq(parameters.checkoutRef, '') }}:
+    - task: Bash@3
+      displayName: 'Download AOCL'
+      inputs:
+        targetType: inline
+        script: wget -nv https://download.amd.com/developer/eula/aocl/aocl-4-2/aocl-linux-gcc-4.2.0_1_amd64.deb
+        workingDirectory: '$(Pipeline.Workspace)'
+    - task: Bash@3
+      displayName: 'Install AOCL'
+      inputs:
+        targetType: inline
+        script: sudo apt install --yes ./aocl-linux-gcc-4.2.0_1_amd64.deb
+        workingDirectory: '$(Pipeline.Workspace)'
     - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
         dependencyList: ${{ parameters.rocmDependencies }}
         dependencySource: staging
 # manual build case: triggered by ROCm/ROCm repo
   - ${{ if ne(parameters.checkoutRef, '') }}:
+    - task: Bash@3
+      displayName: 'Download AOCL'
+      inputs:
+        targetType: inline
+        script: wget -nv https://download.amd.com/developer/eula/aocl/aocl-4-1/aocl-linux-aocc-4.1.0_1_amd64.deb
+        workingDirectory: '$(Pipeline.Workspace)'
+    - task: Bash@3
+      displayName: 'Install AOCL'
+      inputs:
+        targetType: inline
+        script: sudo apt install --yes ./aocl-linux-aocc-4.1.0_1_amd64.deb
+        workingDirectory: '$(Pipeline.Workspace)'
     - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
       parameters:
         dependencyList: ${{ parameters.rocmDependencies }}

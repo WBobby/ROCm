@@ -5,6 +5,9 @@ parameters:
 - name: checkoutRef
   type: string
   default: ''
+- name: offloadEnabled
+  type: boolean
+  default: false
 - name: aptPackages
   type: object
   default:
@@ -94,18 +97,18 @@ jobs:
       cmakeBuildDir: $(Build.SourcesDirectory)/llvm-project/openmp/build
       installDir: $(Build.BinariesDirectory)/llvm
 # offload does not exist for recent releases, so use CI conditional
-  - ${{ if eq(parameters.checkoutRef, '') }}:
+  - ${{ if eq(parameters.offloadEnabled, true) }}:
     - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
       parameters:
         componentName: llvm-offload
         extraBuildFlags: >-
           -DOPENMP_ENABLE_LIBOMPTARGET=1
-          -DOPENMP_TEST_C_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang
-          -DOPENMP_TEST_CXX_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
-          -DCMAKE_C_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang
-          -DCMAKE_CXX_COMPILER==$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+          -DOPENMP_TEST_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+          -DOPENMP_TEST_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
+          -DCMAKE_C_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang
+          -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/clang++
           -DLIBOMPTARGET_AMDGCN_GFXLIST=gfx700;gfx701;gfx801;gfx803;gfx900;gfx902;gfx906;gfx908;gfx90a;gfx90c;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103
-          -DLLVM_DIR==$(Agent.BuildDirectory)/rocm/llvm
+          -DLLVM_DIR=$(Agent.BuildDirectory)/rocm/llvm
           -DLLVM_MAIN_INCLUDE_DIR=$(Build.SourcesDirectory)/llvm-project/llvm/include
           -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$(Build.SourcesDirectory)/llvm-project/llvm/include
           -DCUDA_TOOLKIT_ROOT_DIR=OFF

@@ -23,6 +23,7 @@ parameters:
 - name: stagingPipelineIdentifiers
   type: object
   default:
+    amdsmi: $(amdsmi-pipeline-id)
     aomp: $(aomp-pipeline-id)
     aomp-extras: $(aomp-extras-pipeline-id)
     AMDMIGraphX: $(amdmigraphx-pipeline-id)
@@ -57,6 +58,7 @@ parameters:
 - name: taggedPipelineIdentifiers
   type: object
   default:
+    amdsmi: $(amdsmi-tagged-pipeline-id)
     aomp: $(aomp-tagged-pipeline-id)
     aomp-extras: $(aomp-extras-tagged-pipeline-id)
     AMDMIGraphX: $(amdmigraphx-tagged-pipeline-id)

@@ -10,12 +10,13 @@ parameters:
   default:
     - cmake
     - libgtest-dev
+    - libdrm-dev
     - libdw-dev
     - libsystemd-dev
     - libelf-dev
     - libnuma-dev
     - libpciaccess-dev
-    - rocm-llvm-dev
+    - python3-pip
 - name: pipModules
   type: object
   default:
@@ -26,15 +27,30 @@ parameters:
     - lxml
     - barectf
     - pandas
+- name: rocmDependencies
+  type: object
+  default:
+    - clr
+    - llvm-project
+    - ROCdbgapi
+    - rocm-cmake
+    - rocm-smi-lib
+    - rocminfo
+    - ROCR-Runtime
+    - rocprofiler-register
+    - ROCT-Thunk-Interface
+    - roctracer
 
 jobs:
 - job: rocprofiler
   variables:
   - group: common
   - template: /.azuredevops/variables-global.yml
+  - name: HIP_ROCCLR_HOME 
+    value: $(Agent.BuildDirectory)/rocm
+  - name: ROCM_PATH
+    value: $(Agent.BuildDirectory)/rocm
   pool: ${{ variables.MEDIUM_BUILD_POOL }}
-  container:
-    image: ${{ variables.DOCKER_IMAGE_NAME }}:${{ variables.LATEST_DOCKER_VERSION }}
   workspace:
     clean: all
   steps:
@@ -46,11 +62,68 @@ jobs:
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
     parameters:
       checkoutRepo: ${{ parameters.checkoutRepo }}
+# Manually download rocm-core and aqlprofile, hard-coded 6.1.0 versions
+  - task: Bash@3
+    displayName: 'Download rocm-core'
+    inputs:
+      targetType: inline
+      script: wget -nv https://repo.radeon.com/rocm/apt/6.1/pool/main/r/rocm-core/rocm-core_6.1.0.60100-82~22.04_amd64.deb
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Extract rocm-core'
+    inputs:
+      targetType: inline
+      script: |
+        mkdir rocm-core
+        dpkg-deb -R rocm-core_6.1.0.60100-82~22.04_amd64.deb rocm-core
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Move rocm-core'
+    inputs:
+      targetType: inline
+      script: |
+        mkdir -p $(Agent.BuildDirectory)/rocm
+        cp -R rocm-core/opt/rocm-6.1.0/* $(Agent.BuildDirectory)/rocm
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Download aqlprofile'
+    inputs:
+      targetType: inline
+      script: wget -nv https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60100.60100-82~22.04_amd64.deb
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Extract aqlprofile'
+    inputs:
+      targetType: inline
+      script: |
+        mkdir hsa-amd-aqlprofile
+        dpkg-deb -R hsa-amd-aqlprofile_1.0.0.60100.60100-82~22.04_amd64.deb hsa-amd-aqlprofile
+      workingDirectory: '$(Pipeline.Workspace)'
+  - task: Bash@3
+    displayName: 'Move aqlprofile'
+    inputs:
+      targetType: inline
+      script: |
+        mkdir -p $(Agent.BuildDirectory)/rocm
+        cp -R hsa-amd-aqlprofile/opt/rocm-6.1.0/* $(Agent.BuildDirectory)/rocm
+      workingDirectory: '$(Pipeline.Workspace)'
+# CI case: download latest default branch build
+  - ${{ if eq(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: staging
+# manual build case: triggered by ROCm/ROCm repo
+  - ${{ if ne(parameters.checkoutRef, '') }}:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        dependencyList: ${{ parameters.rocmDependencies }}
+        dependencySource: tag-builds
   - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
     parameters:
       extraBuildFlags: >-
-        -DCMAKE_MODULE_PATH="$(Build.SourcesDirectory)/cmake_modules;/opt/rocm/lib/cmake"
-        -DCMAKE_PREFIX_PATH="/opt/rocm"
+        -DCMAKE_MODULE_PATH=$(Build.SourcesDirectory)/cmake_modules;$(Agent.BuildDirectory)/rocm/lib/cmake;$(Agent.BuildDirectory)/rocm/lib/cmake/hip
+        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
         -DENABLE_LDCONFIG=OFF
         -DUSE_PROF_API=1
         -DGPU_TARGETS=gfx1030;gfx1100

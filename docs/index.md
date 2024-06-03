@@ -91,6 +91,7 @@ Our documentation is organized into the following categories:
 :img-alt: How-to documentation
 :padding: 2
 
+* [Using ROCm for AI](./how-to/rocm-for-ai/index.rst)
 * [System tuning for various architectures](./how-to/tuning-guides.md)
   * [MI100](./how-to/tuning-guides/mi100.md)
   * [MI200](./how-to/tuning-guides/mi200.md)

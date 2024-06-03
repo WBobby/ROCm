@@ -1,0 +1,10 @@
+# replace cmake from apt install with newest version using snap install
+steps:
+- task: Bash@3
+  displayName: update cmake
+  inputs:
+    targetType: inline
+    script: |
+      sudo apt purge cmake
+      sudo snap install cmake --classic
+      hash -r

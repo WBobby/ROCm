@@ -12,6 +12,7 @@ parameters:
     - ninja-build
     - libgtest-dev
     - git
+    - python3-pip
 - name: rocmDependencies
   type: object
   default:
@@ -57,7 +58,7 @@ jobs:
       extraBuildFlags: >-
         -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
         -DBUILD_BENCHMARK=ON
-        -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/amdclang++
+        -DCMAKE_CXX_COMPILER=$(Agent.BuildDirectory)/rocm/llvm/bin/amdclang++
         -DAMDGPU_TARGETS=gfx1030;gfx1100
         -DBUILD_TEST=ON
         -GNinja

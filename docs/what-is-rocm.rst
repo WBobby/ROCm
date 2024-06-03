@@ -121,7 +121,7 @@ Compilers
 
   "`AOMP <https://github.com/ROCm/aomp/>`_", "Scripted build of `LLVM <https://github.com/ROCm/llvm-project>`_ and supporting software"
   "`FLANG <https://github.com/ROCm/flang/>`_", "An out-of-tree Fortran compiler targeting LLVM"
-  "`hipCC <https://github.com/ROCm/HIPCC>`_ ", "Compiler driver utility that calls Clang or NVCC and passes the appropriate include and library options for the target compiler and HIP infrastructure"
+  ":doc:`hipCC <hipcc:index>`", "Compiler driver utility that calls Clang or NVCC and passes the appropriate include and library options for the target compiler and HIP infrastructure"
   "`LLVM (amdclang) <https://github.com/ROCm/llvm-project>`_ ", "Toolkit for the construction of highly optimized compilers, optimizers, and runtime environments"
 
 Runtimes
