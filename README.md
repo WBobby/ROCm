@@ -71,13 +71,21 @@ By default the ROCm build will compile for all supported GPU architectures and w
 The Build time will reduce significantly if we limit the GPU Architecture/s against which we need to build by using the environment variable GPU_ARCHS as mentioned below.
 
 ```bash
-# clone source code
+# --------------------------------------
+# Step1: clone source code
+# --------------------------------------
+
 mkdir -p ~/WORKSPACE/      # Or any folder name other than WORKSPACE
 cd ~/WORKSPACE/
 export ROCM_VERSION=6.1.0   # or 6.1.1
 ~/bin/repo init -u http://github.com/WBobby/ROCm.git -b roc-6.1.x -m rocm-build/rocm-${ROCM_VERSION}.xml
 ~/bin/repo sync
 
+# --------------------------------------
+# Step 2: Prepare build environment
+# --------------------------------------
+
+# Option 1: Start a docker container
 # Pulling required base docker images:
 # Ubuntu20.04 built from ROCm/rocm-build/docker/ubuntu20/Dockerfile
 docker pull rocm/rocm-build-ubuntu-20.04:6.1
@@ -97,6 +105,18 @@ docker run -ti \
     -v ${HOME}/.ccache:${HOME}/.ccache \
     -u $(id -u):$(id -g) \
     <replace_with_required_ubuntu_base_docker_image> bash
+
+# Option 2: Install required packages into the host machine
+# For ubuntu20.04 system
+cd ROCm/rocm-build/docker/ubuntu20
+bash install-prerequisites.sh
+# For ubuntu22.04 system
+cd ROCm/rocm-build/docker/ubuntu22
+bash install-prerequisities.sh
+
+# --------------------------------------
+# Step 3: Run build command line
+# --------------------------------------
 
 # Select GPU targets before building:
 # When GPU_ARCHS is not set, default GPU targets supported by ROCm6.1 will be used.
@@ -125,9 +145,11 @@ out/ubuntu-20.04/20.04/logs/
 # Find built logs in ubuntu22.04:
 out/ubuntu-22.04/22.04/logs/
 # All logs pertaining to failed components, end with .errror extension.
-out/ubuntu-22.04/22.04/logs/rpp.errors  # Example
+out/ubuntu-22.04/22.04/logs/rpp.errors          # Example
 # All logs pertaining to building components, end with .inprogress extension.
 out/ubuntu-22.04/22.04/logs/rocblas.inprogress  # Example
+# All logs pertaining to passed components, use the component names.
+out/ubuntu-22.04/22.04/logs/rocblas             # Example
 ```
 Note: [Overview for ROCm.mk](rocm-build/README.md)
 
