@@ -144,8 +144,8 @@ out/ubuntu-22.04/22.04/deb/
 out/ubuntu-20.04/20.04/logs/
 # Find built logs in ubuntu22.04:
 out/ubuntu-22.04/22.04/logs/
-# All logs pertaining to failed components, end with .errror extension.
-out/ubuntu-22.04/22.04/logs/rpp.errors          # Example
+# All logs pertaining to failed components, end with .errrors extension.
+out/ubuntu-22.04/22.04/logs/rocblas.errors          # Example
 # All logs pertaining to building components, end with .inprogress extension.
 out/ubuntu-22.04/22.04/logs/rocblas.inprogress  # Example
 # All logs pertaining to passed components, use the component names.
