@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
     <remote name="rocm-org" fetch="https://github.com/ROCm/" />
+    <remote name="personal-org" fetch="https://github.com/WBobby/" />
     <default revision="refs/tags/rocm-6.2.0"
      remote="rocm-org"
      sync-c="true"
      sync-j="4" />
 <!--list of projects for ROCm-->
-    <project name="ROCm" revision="rocm-build-rel-6.2" />
+    <project name="ROCm" remote="personal-org" revision="rocm-build-rel-6.2" />
     <project name="ROCK-Kernel-Driver" />
     <project name="ROCR-Runtime" />
     <project name="ROCT-Thunk-Interface" />
