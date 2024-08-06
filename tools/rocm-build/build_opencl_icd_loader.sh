@@ -63,7 +63,7 @@ copy_pkg_files_to_rocm() {
         popd || exit 2
     fi
     ls ./pkg -alt
-    sudo cp -r ./pkg/*/rocm*/* "${ROCM_PATH}" || exit 2
+    cp -r ./pkg/*/rocm*/* "${ROCM_PATH}" || exit 2
     rm -rf pkg/
 }
 
