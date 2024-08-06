@@ -4,7 +4,6 @@ PROJ_NAME=OpenCL-ICD-Loader
 TARGET="build"
 MAKEOPTS="$DASH_JAY"
 BUILD_TYPE="Debug"
-OPENCL_ICD_LOADER_BUILD_DIR="$(getBuildPath)/$PROJ_NAME"
 PACKAGE_ROOT="$(getPackageRoot)"
 PACKAGE_DEB="$PACKAGE_ROOT/deb/opencl-icd-loader"
 PACKAGE_RPM="$PACKAGE_ROOT/rpm/opencl-icd-loader"
@@ -41,7 +40,6 @@ fi
 
 clean_opencl_icd_loader() {
     echo "Cleaning $PROJ_NAME"
-    rm -rf "$OPENCL_ICD_LOADER_BUILD_DIR"
     rm -rf "$PACKAGE_DEB"
     rm -rf "$PACKAGE_RPM"
     rm -rf "$PACKAGE_ROOT/opencl-icd-loader"
