@@ -95,7 +95,7 @@ $(call adddep,thunk,${ASAN_DEP})
 
 # rocm-dev points to all possible last finish components of Stage1 build.
 rocm-dev-components :=rdc hipify_clang openmp_extras \
-	rocm-core amd_smi_lib hipcc clang-ocl \
+	rocm-core amd_smi_lib hipcc \
 	rocm_bandwidth_test rocr_debug_agent rocm-gdb
 $(call adddep,rocm-dev,$(filter-out ${NOBUILD},${rocm-dev-components}))
 
