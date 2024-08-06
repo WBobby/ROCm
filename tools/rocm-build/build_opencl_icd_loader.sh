@@ -1,4 +1,5 @@
 #!/bin/bash
+
 source "$(dirname "${BASH_SOURCE}")/compute_utils.sh"
 PROJ_NAME=OpenCL-ICD-Loader
 TARGET="build"
