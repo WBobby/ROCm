@@ -14,6 +14,7 @@ printUsage() {
         type referred to by pkg_type"
     echo "  -h,  --help               Prints this help"
     echo "  -s,  --static             Build static lib (.a).  build instead of dynamic/shared(.so) "
+    echo "  -w,  --wheel              Creates python wheel package of comgr. It needs to be used along with -r option"
     echo "  -l,  --link_llvm_static   Link to LLVM statically.  Default is to dynamically link to LLVM; requires that LLVM dylibs are created."
     echo
     echo "Possible values for <type>:"
@@ -36,6 +37,7 @@ BUILD_DIR=$(getBuildPath $API_NAME)
 PACKAGE_DEB=$(getPackageRoot)/deb/$API_NAME
 PACKAGE_RPM=$(getPackageRoot)/rpm/$API_NAME
 PACKAGE_PREFIX=$ROCM_INSTALL_PATH
+ROCM_WHEEL_DIR="${BUILD_DIR}/_wheel"
 BUILD_TYPE=Debug
 MAKE_OPTS="$DASH_JAY CTEST_OUTPUT_ON_FAILURE=1 -C $BUILD_DIR"
 VERBOSE_OPTS="AMD_COMGR_EMIT_VERBOSE_LOGS=1 AMD_COMGR_REDIRECT_LOGS=stdout"
@@ -46,7 +48,7 @@ MAKETARGET="deb"
 
 LINK_LLVM_DYLIB="OFF"
 
-VALID_STR=`getopt -o hcraslo:p: --long help,clean,release,address_sanitizer,static,link_llvm_static,outdir:,package: -- "$@"`
+VALID_STR=`getopt -o hcraswlo:p: --long help,clean,release,address_sanitizer,static,wheel,link_llvm_static,outdir:,package: -- "$@"`
 eval set -- "$VALID_STR"
 
 while true ;
@@ -63,6 +65,8 @@ do
                 set_address_sanitizer_on ; shift ;;
         (-s | --static)
                 SHARED_LIBS="OFF" ; shift ;;
+        (-w | --wheel)
+                WHEEL_PACKAGE=true ; shift ;;
         (-l | --link_llvm_static)
                 LINK_LLVM_DYLIB="OFF"; shift ;;
         (-o | --outdir)
@@ -86,6 +90,7 @@ fi
 clean() {
     echo "Cleaning $PROJ_NAME"
 
+    rm -rf "$ROCM_WHEEL_DIR"
     rm -rf $BUILD_DIR
     rm -rf $PACKAGE_DEB
     rm -rf $PACKAGE_RPM
@@ -128,6 +133,18 @@ build() {
     copy_if RPM "${CPACKGEN:-"DEB;RPM"}" "$PACKAGE_RPM" $BUILD_DIR/comgr*.rpm
 }
 
+create_wheel_package() {
+    echo "Creating comgr wheel package"
+    mkdir -p $ROCM_WHEEL_DIR
+    cp -f $SCRIPT_ROOT/generate_setup_py.py $ROCM_WHEEL_DIR
+    cp -f $SCRIPT_ROOT/repackage_wheel.sh $ROCM_WHEEL_DIR
+    cd $ROCM_WHEEL_DIR
+    # Currently only supports python3.6
+    ./repackage_wheel.sh $PACKAGE_RPM/comgr*.rpm python3.6
+    # Copy the wheel created to RPM folder which will be uploaded to artifactory
+    copy_if WHL "WHL" "$PACKAGE_RPM" "$ROCM_WHEEL_DIR"/dist/*.whl
+}
+
 print_output_directory() {
     case ${PKGTYPE} in
         ("deb")
@@ -147,5 +164,10 @@ case $TARGET in
     (outdir) print_output_directory ;;
     (*) die "Invalid target $TARGET" ;;
 esac
+
+if [[ $WHEEL_PACKAGE == true ]]; then
+    echo "Wheel Package build started !!!!"
+    create_wheel_package
+fi
 
 echo "Operation complete"
