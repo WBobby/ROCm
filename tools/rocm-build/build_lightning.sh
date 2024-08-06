@@ -74,8 +74,8 @@ BUILD_MANPAGES="ON"
 STATIC_FLAG=
 
 SANITIZER_AMDGPU=1
-HSA_INC_PATH="$WORK_ROOT/hsa/runtime/opensrc/hsa-runtime/inc"
-COMGR_INC_PATH="$WORK_ROOT/external/llvm-project/amd/comgr/include"
+HSA_INC_PATH="$WORK_ROOT/ROCR-Runtime/src/inc"
+COMGR_INC_PATH="$WORK_ROOT/llvm-project/amd/comgr/include"
 
 VALID_STR=`getopt -o htcV:v:draAswlo:BPNM --long help,alt,clean,assert_llvm_ver_major:,assert_llvm_ver_minor:,debug,release,address_sanitizer,no_address_sanitizer,static,build_llvm_static,wheel,build,package,skip_lit_tests,skip_man_pages,outdir: -- "$@"`
 eval set -- "$VALID_STR"
