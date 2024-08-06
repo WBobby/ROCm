@@ -10,7 +10,9 @@ printUsage() {
     echo "  -c,  --clean              Removes all amd_smi build artifacts"
     echo "  -r,  --release            Build non-debug version amd_smi (default is debug)"
     echo "  -a,  --address_sanitizer  Enable address sanitizer"
-    echo "  -s,  --static             Build static lib (.a).  build instead of dynamic/shared(.so) "
+    echo "  -s,  --static             Component/Build does not support static builds just accepting this param & ignore. No effect of the param on this build"
+    echo "  -w,  --wheel              Creates python wheel package of amd-smi. 
+                                      It needs to be used along with -r option"
     echo "  -o,  --outdir <pkg_type>  Print path of output directory containing packages of type referred to by pkg_type"
     echo "  -p,  --package <type>     Specify packaging format"
     echo "  -h,  --help               Prints this help"
@@ -22,18 +24,22 @@ printUsage() {
     return 0
 }
 
+# AMD_SMI
 PACKAGE_ROOT="$(getPackageRoot)"
 TARGET="build"
 
 PACKAGE_LIB=$(getLibPath)
 PACKAGE_INCLUDE="$(getIncludePath)"
 
+# AMDSMI
 AMDSMI_BUILD_DIR=$(getBuildPath amdsmi)
 AMDSMI_PACKAGE_DEB_DIR="$(getPackageRoot)/deb/amdsmi"
 AMDSMI_PACKAGE_RPM_DIR="$(getPackageRoot)/rpm/amdsmi"
+ROCM_WHEEL_DIR="${AMDSMI_BUILD_DIR}/_wheel"
 AMDSMI_BUILD_TYPE="debug"
 BUILD_TYPE="Debug"
 
+# BUILD ARGUMENTS
 MAKETARGET="deb"
 MAKEARG="$DASH_JAY O=$AMDSMI_BUILD_DIR"
 AMDSMI_MAKE_OPTS="$DASH_JAY O=$AMDSMI_BUILD_DIR -C $AMDSMI_BUILD_DIR"
@@ -42,7 +48,8 @@ SHARED_LIBS="ON"
 CLEAN_OR_OUT=0;
 PKGTYPE="deb"
 
-VALID_STR=`getopt -o hcraso:p: --long help,clean,release,static,address_sanitizer,outdir:,package: -- "$@"`
+#parse the arguments
+VALID_STR=`getopt -o hcraswo:p: --long help,clean,release,static,wheel,address_sanitizer,outdir:,package: -- "$@"`
 eval set -- "$VALID_STR"
 
 while true ;
@@ -60,7 +67,9 @@ do
                 # TODO - support standard option of passing cmake environment vars - CFLAGS,CXXFLAGS etc., to enable address sanitizer
                 ADDRESS_SANITIZER=true ; shift ;;
         (-s | --static)
-                SHARED_LIBS="OFF" ; shift ;;
+                echo "-s parameter accepted but ignored" ; shift ;;
+        (-w | --wheel)
+                WHEEL_PACKAGE=true ; shift ;;
         (-o | --outdir)
                 TARGET="outdir"; PKGTYPE=$2 ; OUT_DIR_SPECIFIED=1 ; ((CLEAN_OR_OUT|=2)) ; shift 2 ;;
         (-p | --package)
@@ -80,6 +89,7 @@ if [ $RET_CONFLICT -ge 30 ]; then
 fi
 
 clean_amdsmi() {
+    rm -rf "$ROCM_WHEEL_DIR"
     rm -rf "$AMDSMI_BUILD_DIR"
     rm -rf "$AMDSMI_PACKAGE_DEB_DIR"
     rm -rf "$AMDSMI_PACKAGE_RPM_DIR"
@@ -120,6 +130,18 @@ build_amdsmi() {
     copy_if RPM "${CPACKGEN:-"DEB;RPM"}" "$AMDSMI_PACKAGE_RPM_DIR" $AMDSMI_BUILD_DIR/*.rpm
 }
 
+create_wheel_package() {
+    echo "Creating amd smi wheel package"
+    # Copy the setup.py generator to build folder
+    mkdir -p $ROCM_WHEEL_DIR
+    cp -f $SCRIPT_ROOT/generate_setup_py.py $ROCM_WHEEL_DIR
+    cp -f $SCRIPT_ROOT/repackage_wheel.sh $ROCM_WHEEL_DIR
+    cd $ROCM_WHEEL_DIR
+    # Currently only supports python3.6
+    ./repackage_wheel.sh $AMDSMI_BUILD_DIR/*.rpm python3.6
+    copy_if WHL "WHL" "$AMDSMI_PACKAGE_RPM_DIR" "$ROCM_WHEEL_DIR"/dist/*.whl
+}
+
 print_output_directory() {
     case ${PKGTYPE} in
         ("deb")
@@ -140,6 +162,11 @@ case $TARGET in
     (outdir) print_output_directory ;;
     (*) die "Invalid target $TARGET" ;;
 esac
+
+if [[ $WHEEL_PACKAGE == true ]]; then
+    echo "Wheel Package build started !!!!"
+    create_wheel_package
+fi
 
 echo "Operation complete"
 exit 0
