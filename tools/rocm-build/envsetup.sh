@@ -123,9 +123,11 @@ if [ -d "$HSA_OPENSOURCE_ROOT/ROCT-Thunk-Interface" ]; then
 	export THUNK_ROOT=$HSA_OPENSOURCE_ROOT/ROCT-Thunk-Interface
 fi
 export AQLPROFILE_ROOT=$WORK_ROOT/hsa/aqlprofile
+export OMNIPERF_ROOT=$WORK_ROOT/omniperf
 export ROCPROFILER_ROOT=$WORK_ROOT/rocprofiler
 export ROCTRACER_ROOT=$WORK_ROOT/roctracer
 export ROCPROFILER_REGISTER_ROOT=$WORK_ROOT/rocprofiler-register
+export OMNITRACE_ROOT=$WORK_ROOT/omnitrace
 export RDC_ROOT=$WORK_ROOT/rdc
 export RDCTST_ROOT=$RDC_ROOT/tests/rdc_tests
 export UTILS_ROOT=$WORK_ROOT/rocm-utils
@@ -147,7 +149,6 @@ export ROCM_CORE_ROOT=$WORK_ROOT/rocm-core
 export ROCM_CMAKE_ROOT=$WORK_ROOT/rocm-cmake
 export ROCM_BANDWIDTH_TEST_ROOT=$WORK_ROOT/rocm_bandwidth_test
 export ROCMINFO_ROOT=$WORK_ROOT/rocminfo
-export CLANG_OCL_ROOT=$WORK_ROOT/clang-ocl
 export ROCR_DEBUG_AGENT_ROOT=$WORK_ROOT/rocr_debug_agent
 export COMGR_ROOT=$LLVM_PROJECT_ROOT/amd/comgr
 export COMGR_LIB_PATH=$OUT_DIR/build/amd_comgr
