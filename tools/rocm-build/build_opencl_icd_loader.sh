@@ -6,8 +6,8 @@ TARGET="build"
 MAKEOPTS="$DASH_JAY"
 BUILD_TYPE="Debug"
 PACKAGE_ROOT="$(getPackageRoot)"
-PACKAGE_DEB="$PACKAGE_ROOT/deb/opencl-icd-loader"
-PACKAGE_RPM="$PACKAGE_ROOT/rpm/opencl-icd-loader"
+PACKAGE_DEB="$PACKAGE_ROOT/deb/${PROJ_NAME,,}"
+PACKAGE_RPM="$PACKAGE_ROOT/rpm/${PROJ_NAME,,}"
 CLEAN_OR_OUT=0;
 PKGTYPE="deb"
 MAKETARGET="deb"
@@ -43,7 +43,7 @@ clean_opencl_icd_loader() {
     echo "Cleaning $PROJ_NAME"
     rm -rf "$PACKAGE_DEB"
     rm -rf "$PACKAGE_RPM"
-    rm -rf "$PACKAGE_ROOT/opencl-icd-loader"
+    rm -rf "$PACKAGE_ROOT/${PROJ_NAME,,}"
 }
 
 copy_pkg_files_to_rocm() {
@@ -85,7 +85,7 @@ build_opencl_icd_loader() {
         fi
 
         wget -t3 -P "$PACKAGE_DEB" "${url}${package}"
-        copy_pkg_files_to_rocm ${API_NAME} ${API_NAME}
+        copy_pkg_files_to_rocm ${PROJ_NAME,,} ${API_NAME}
     else
         echo "$DISTRO_ID is not supported..."
         exit 2
