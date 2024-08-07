@@ -127,6 +127,7 @@ export OMNIPERF_ROOT=$WORK_ROOT/omniperf
 export ROCPROFILER_ROOT=$WORK_ROOT/rocprofiler
 export ROCTRACER_ROOT=$WORK_ROOT/roctracer
 export ROCPROFILER_REGISTER_ROOT=$WORK_ROOT/rocprofiler-register
+export ROCPROFILER_SDK_ROOT=$WORK_ROOT/rocprofiler-sdk
 export OMNITRACE_ROOT=$WORK_ROOT/omnitrace
 export RDC_ROOT=$WORK_ROOT/rdc
 export RDCTST_ROOT=$RDC_ROOT/tests/rdc_tests
