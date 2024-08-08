@@ -27,7 +27,7 @@ build_rocprim() {
     CXX="${ROCM_PATH}/bin/hipcc" \
     cmake \
         ${LAUNCHER_FLAGS} \
-        $(rocm_common_cmake_params) \
+        $(init_rocm_common_cmake_params) \
         -DAMDGPU_TARGETS=${GPU_TARGETS} \
         -DBUILD_BENCHMARK=OFF \
         -DBUILD_BENCHMARK=OFF \
