@@ -189,7 +189,9 @@ echo " PKGTYPE= $6 "
 echo " MAKETARGET = $7 "
 }
 
+rocm_math_common_cmake_params=()
 init_rocm_common_cmake_params(){
+  local retCmakeParams=${1:-rocm_math_common_cmake_params}
   local SET_BUILD_TYPE=${BUILD_TYPE:-'RelWithDebInfo'}
   local ASAN_LIBDIR="lib/asan"
   local CMAKE_PATH=$(getCmakePath)
@@ -243,7 +245,7 @@ init_rocm_common_cmake_params(){
         "-DCMAKE_CXX_FLAGS_RELWITHDEBINFO=-O3 -g -DNDEBUG"
     )
   fi
-  printf '%s ' "${cmake_params[@]}"
+    eval "${retCmakeParams}=( \"\${cmake_params[@]}\" ) "
 }
 
 # Common cmake parameters can be set
