@@ -34,7 +34,7 @@ build_rocsparse() {
     cmake \
         -DAMDGPU_TARGETS=${GPU_TARGETS} \
         ${LAUNCHER_FLAGS} \
-        "${rocm_common_cmake_params[@]}"\
+        "${rocm_math_common_cmake_params[@]}"\
         -DBUILD_CLIENTS_SAMPLES=ON \
         -DBUILD_CLIENTS_TESTS=ON \
         -DBUILD_CLIENTS_BENCHMARKS=ON \
