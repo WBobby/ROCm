@@ -63,6 +63,8 @@ build_miopen_ck() {
             -DROCM_DISABLE_LDCONFIG=ON \
             -DROCM_PATH=${ROCM_PATH} \
             -DCPACK_GENERATOR="${PKGTYPE^^}" \
+            -DCMAKE_CXX_COMPILER="${ROCM_PATH}/llvm/bin/clang++" \
+            -DCMAKE_C_COMPILER="${ROCM_PATH}/llvm/bin/clang" \
             ${LAUNCHER_FLAGS} \
             -DINSTANCES_ONLY=ON \
             -DAMDGPU_TARGETS=${GPU_TARGETS} \
