@@ -29,6 +29,7 @@ build_rocal() {
     cmake --build . --target PyPackageInstall
     sudo make install
     sudo make package
+    sudo chown -R $(id -u):$(id -g) ${BUILD_DIR}
 
     rm -rf _CPack_Packages/ && find -name '*.o' -delete
     mkdir -p $PACKAGE_DIR
