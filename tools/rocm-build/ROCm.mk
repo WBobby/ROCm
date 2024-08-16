@@ -225,7 +225,7 @@ rocm-dev: T_rocm-dev
 
 ${OUT_DIR}/logs:
 	sudo mkdir -p -m 775 "${ROCM_INSTALL_PATH}" && \
-	sudo chown -R "$(shell id -u):$(shell id -g)" "${ROCM_INSTALL_PATH}"
+	sudo chown -R "$(shell id -u):$(shell id -g)" "/opt"
 	sudo chown -R "$(shell id -u):$(shell id -g)" "/home/$(shell id -un)"
 	mkdir -p "${@}"
 	mkdir -p ${HOME}/.ccache
