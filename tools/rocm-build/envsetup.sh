@@ -181,7 +181,7 @@ export BUILD_ARTIFACTS=$OUT_DIR/$PACKAGEEXT
 export HIPCC_COMPILE_FLAGS_APPEND="-O3 -Wno-format-nonliteral -parallel-jobs=4"
 export HIPCC_LINK_FLAGS_APPEND="-O3 -parallel-jobs=4"
 
-export PATH="${ROCM_PATH}/lib/llvm/bin:${PATH}"
+export PATH="${ROCM_PATH}/bin:${ROCM_PATH}/lib/llvm/bin:${PATH}"
 
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8

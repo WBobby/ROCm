@@ -27,8 +27,8 @@ build_rocsparse() {
     fi
 
     ROCSPARSE_TEST_MIRROR=$MIRROR \
-    CXX=$(set_build_variables CXX)\
-    CC=$(set_build_variables CC)\
+    export CXX=$(set_build_variables CXX)\
+    export CC=$(set_build_variables CC)\
 
     init_rocm_common_cmake_params
     cmake \
