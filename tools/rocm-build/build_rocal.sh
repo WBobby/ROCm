@@ -22,7 +22,7 @@ build_rocal() {
 
     mkdir -p $BUILD_DIR && cd $BUILD_DIR
 
-    python3 ${$COMPONENT_SRC}/rocAL-setup.py
+    python3 ${COMPONENT_SRC}/rocAL-setup.py
 
     cmake -DAMDRPP_PATH=$ROCM_PATH ${COMPONENT_SRC}
     make -j8
