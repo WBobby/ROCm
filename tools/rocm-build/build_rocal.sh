@@ -28,7 +28,7 @@ build_rocal() {
     make -j${PROC}
     cmake --build . --target PyPackageInstall
     sudo make install
-    make package
+    sudo make package
 
     rm -rf _CPack_Packages/ && find -name '*.o' -delete
     mkdir -p $PACKAGE_DIR
@@ -45,7 +45,7 @@ clean_rocal() {
 stage2_command_args "$@"
 
 case $TARGET in
-    build) build_rocal; build_wheel ;;
+    build) build_rocal ;;
     outdir) print_output_directory ;;
     clean) clean_rocal ;;
     *) die "Invalid target $TARGET" ;;
