@@ -16,6 +16,8 @@ build_mivisionx() {
        BUILD_DEV=OFF
     fi
 
+    init_rocm_common_cmake_params
+
     if [ -n "$GPU_ARCHS" ]; then
         GPU_TARGETS="$GPU_ARCHS"
     else
@@ -23,7 +25,7 @@ build_mivisionx() {
     fi
 
     cmake \
-        $(rocm_common_cmake_params) \
+        "${rocm_math_common_cmake_params[@]}" \
         -DROCM_PATH="$ROCM_PATH" \
         -DBUILD_DEV=$BUILD_DEV \
         -DCMAKE_INSTALL_LIBDIR=$(getInstallLibDir) \
