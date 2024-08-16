@@ -25,9 +25,9 @@ build_rocal() {
     python3 ${COMPONENT_SRC}/rocAL-setup.py
 
     cmake -DAMDRPP_PATH=$ROCM_PATH ${COMPONENT_SRC}
-    make -j8
+    make -j${PROC}
     cmake --build . --target PyPackageInstall
-    make install
+    sudo make install
     make package
 
     rm -rf _CPack_Packages/ && find -name '*.o' -delete
