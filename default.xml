@@ -8,7 +8,6 @@
 <!--list of projects for ROCm-->
     <project name="ROCK-Kernel-Driver" />
     <project name="ROCR-Runtime" />
-    <project name="ROCT-Thunk-Interface" />
     <project name="amdsmi" />
     <project name="rdc" />
     <project name="rocm_bandwidth_test" />
