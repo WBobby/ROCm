@@ -131,11 +131,6 @@ build_rocm_bandwidth_test() {
     echo "Copying $TEST_NAME to $TEST_BIN_DIR"
     progressCopy "$TEST_BLD_DIR/$TEST_NAME" "$TEST_BIN_DIR"
 
-    # Run the copy cmd to place run script in utils folder
-    mkdir -p "$TEST_UTILS_DIR"
-    echo "Copying $RUN_SCRIPT to $TEST_UTILS_DIR"
-    progressCopy "$SCRIPT_ROOT/$RUN_SCRIPT" "$TEST_UTILS_DIR"
-
     copy_if DEB "${CPACKGEN:-"DEB;RPM"}" "$TEST_PKG_DEB" $TEST_BLD_DIR/*.deb
     copy_if RPM "${CPACKGEN:-"DEB;RPM"}" "$TEST_PKG_RPM" $TEST_BLD_DIR/*.rpm
 
