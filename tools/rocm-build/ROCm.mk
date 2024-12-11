@@ -76,12 +76,12 @@ $(call adddep,hipify_clang,hip_on_rocclr lightning)
 $(call adddep,lightning,)
 $(call adddep,opencl_on_rocclr,${ASAN_DEP} rocr comgr)
 $(call adddep,openmp_extras,lightning devicelibs rocr)
-$(call adddep,rocm_bandwidth_test,${ASAN_DEP} hsa)
+$(call adddep,rocm_bandwidth_test,${ASAN_DEP} rocr)
 $(call adddep,rocm_smi_lib,${ASAN_DEP})
 $(call adddep,rocm-cmake,${ASAN_DEP})
 $(call adddep,rocm-core,${ASAN_DEP})
 $(call adddep,rocm-gdb,dbgapi)
-$(call adddep,rocminfo,${ASAN_DEP} hsa)
+$(call adddep,rocminfo,${ASAN_DEP} rocr)
 $(call adddep,rocprofiler-register,${ASAN_DEP})
 $(call adddep,rocprofiler-sdk,${ASAN_DEP} rocr aqlprofile opencl_on_rocclr hip_on_rocclr comgr)
 $(call adddep,rocprofiler-systems,${ASAN_DEP} hipcc rocr hip_on_rocclr rocm_smi_lib rocprofiler roctracer rocprofiler-sdk)
@@ -89,7 +89,7 @@ $(call adddep,rocprofiler,${ASAN_DEP} rocr roctracer aqlprofile opencl_on_rocclr
 $(call adddep,rocprofiler-compute,${ASAN_DEP})
 $(call adddep,rocr,${ASAN_DEP} lightning rocm_smi_lib devicelibs rocprofiler-register)
 $(call adddep,rocr_debug_agent,${ASAN_DEP} hip_on_rocclr rocr dbgapi)
-$(call adddep,roctracer,${ASAN_DEP} hsa hip_on_rocclr)
+$(call adddep,roctracer,${ASAN_DEP} rocr hip_on_rocclr)
 
 # rocm-dev points to all possible last finish components of Stage1 build.
 rocm-dev-components :=amd_smi_lib aqlprofile comgr dbgapi devicelibs hip_on_rocclr hipcc hipify_clang \

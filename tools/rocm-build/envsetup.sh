@@ -119,11 +119,13 @@ export OCL_RT_SRC_TF_ROOT=$SRC_TF_ROOT/ocl_lc
 export SCRIPT_ROOT=$WORK_ROOT/build
 export THUNK_ROOT=$WORK_ROOT/ROCT-Thunk-Interface
 
-export AQLPROFILE_ROOT=$WORK_ROOT/hsa/aqlprofile
+export AQLPROFILE_ROOT=$WORK_ROOT/aqlprofile
 export ROCPROFILER_ROOT=$WORK_ROOT/rocprofiler
 export ROCTRACER_ROOT=$WORK_ROOT/roctracer
 export ROCPROFILER_REGISTER_ROOT=$WORK_ROOT/rocprofiler-register
 export ROCPROFILER_SDK_ROOT=$WORK_ROOT/rocprofiler-sdk
+export ROCPROFILER_COMPUTE_ROOT=$WORK_ROOT/rocprofiler-compute
+export ROCPROFILER_SYSTEMS_ROOT=$WORK_ROOT/rocprofiler-systems
 export RDC_ROOT=$WORK_ROOT/rdc
 export RDCTST_ROOT=$RDC_ROOT/tests/rdc_tests
 export UTILS_ROOT=$WORK_ROOT/rocm-utils
