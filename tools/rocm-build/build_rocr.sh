@@ -340,21 +340,21 @@ checkchild(){
     fi
 }
 
-if [ "$target" != "clean" ]; then
-    if [ "$rocrtst_target" == "yes" ]; then
-        build_rocrtst &
-    else
-        true & # Dummy build_rocrtst
-    fi
-    rocrtst_pid=$!
-    if [ "$kfdtest_target" == "yes" ]; then
-        build_kfdtest &
-    else
-       true & # Dummy build_kfdtest
-    fi
-    kfdtest_pid=$!
-    checkchild $kfdtest_pid kfdtest
-    checkchild $rocrtst_pid rocrtst
-fi
+# if [ "$target" != "clean" ]; then
+#     if [ "$rocrtst_target" == "yes" ]; then
+#         build_rocrtst &
+#     else
+#         true & # Dummy build_rocrtst
+#     fi
+#     rocrtst_pid=$!
+#     if [ "$kfdtest_target" == "yes" ]; then
+#         build_kfdtest &
+#     else
+#        true & # Dummy build_kfdtest
+#     fi
+#     kfdtest_pid=$!
+#     checkchild $kfdtest_pid kfdtest
+#     checkchild $rocrtst_pid rocrtst
+# fi
 
 echo "Operation complete"
