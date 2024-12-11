@@ -34,7 +34,7 @@ clean_hipblas-common() {
 stage2_command_args "$@"
 
 case $TARGET in
-    build) build_hipblas-common; build_wheel ;;
+    build) build_hipblas-common ;;
     outdir) print_output_directory ;;
     clean) clean_hipblas-common ;;
     *) die "Invalid target $TARGET" ;;
