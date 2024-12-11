@@ -48,7 +48,7 @@ CLEAN_OR_OUT=0;
 MAKETARGET="deb"
 PKGTYPE="deb"
 LDFLAGS="$LDFLAGS -Wl,--enable-new-dtags"
-
+LIB_AMD_PYTHON="libamdpython.so"
 
 tokeep=(
     main${ROCM_INSTALL_PATH}/bin/rocgdb
@@ -353,6 +353,7 @@ Summary: Tests for gdb enhanced to debug AMD GPUs
 Version: ${VERSION//-/_}
 Release: ${RELEASE}
 License: GPL
+Prefix: ${ROCM_INSTALL_PATH}
 Requires: dejagnu, ${PROJ_NAME} = ${VERSION//-/_}-${RELEASE}, rocm-core, make
 
 %description
@@ -476,7 +477,7 @@ main(){
 
 VALID_STR=`getopt -o hcraso:p: --long help,clean,release,static,address_sanitizer,outdir:,package: -- "$@"`
 eval set -- "$VALID_STR"
-
+ASAN_BUILD="no"
 while true ;
 do
     case "$1" in
@@ -488,7 +489,8 @@ do
                 BUILD_TYPE="Release" ; shift ; MAKEARG="$MAKEARG REL=1" ;; # For compatability with other scripts
         (-a | --address_sanitizer)
                 set_asan_env_vars
-                set_address_sanitizer_on ; shift ;;
+                set_address_sanitizer_on
+                ASAN_BUILD="yes" ; shift ;;
         (-s | --static)
                 ack_and_skip_static ;;
         (-o | --outdir)
