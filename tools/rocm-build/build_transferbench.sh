@@ -2,7 +2,6 @@
 
 set -ex
 
-source "$(dirname "${BASH_SOURCE[0]}")/compute_utils.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/compute_helper.sh"
 
 set_component_src TransferBench
@@ -22,8 +21,7 @@ build_transferbench() {
     make package
 
     rm -rf _CPack_Packages/ && find -name '*.o' -delete
-    copy_if "DEB" "${CPACKGEN:-"deb;rpm"}" "${PACKAGE_DIR}" "${BUILD_DIR}"/*."${PKGTYPE}"
-    copy_if "RPM" "${CPACKGEN:-"deb;rpm"}" "${PACKAGE_DIR}" "${BUILD_DIR}"/*."${PKGTYPE}"
+    copy_if "${PKGTYPE}" "${CPACKGEN:-"DEB;RPM"}" "${PACKAGE_DIR}" "${BUILD_DIR}"/*."${PKGTYPE}"
     show_build_cache_stats
 }
 
