@@ -6,7 +6,7 @@ printUsage() {
     echo "Usage: $(basename "${BASH_SOURCE}") [options ...]"
     echo
     echo "Options:"
-    echo "  -s,  --static           Supports static CI by accepting this param & not bailing out. No effect of the param though"
+    echo "  -s,  --static             Component/Build does not support static builds just accepting this param & ignore. No effect of the param on this build"
     echo "  -c,  --clean              Clean output and delete all intermediate work"
     echo "  -p,  --package <type>     Specify packaging format"
     echo "  -r,  --release            Make a release build instead of a debug build"
@@ -70,7 +70,7 @@ do
                 set_asan_env_vars
                 set_address_sanitizer_on ; shift ;;
         (-s | --static)
-                SHARED_LIBS="OFF" ; shift ;;
+                ack_and_skip_static ;;
         (-o | --outdir)
                 TARGET="outdir"; PKGTYPE=$2 ; OUT_DIR_SPECIFIED=1 ; ((CLEAN_OR_OUT|=2)) ; shift 2 ;;
         (-p | --package)
@@ -127,6 +127,12 @@ build() {
 
     copy_if DEB "${CPACKGEN:-"DEB;RPM"}" "${PACKAGE_DEB}" "$BUILD_DIR/${API_NAME}"*.deb
     copy_if RPM "${CPACKGEN:-"DEB;RPM"}" "${PACKAGE_RPM}" "$BUILD_DIR/${API_NAME}"*.rpm
+
+    mkdir -p "$PACKAGE_UTILS"
+    progressCopy "$SCRIPT_ROOT/run_rocr_debug_agent_test.sh" "$PACKAGE_UTILS"
+
+    echo "copying run-test.py to $PACKAGE_BIN"
+    progressCopy "$ROCR_DEBUG_AGENT_ROOT/test/run-test.py" "$PACKAGE_BIN"
 }
 
 print_output_directory() {

@@ -26,7 +26,6 @@ printUsage() {
     return 0
 }
 
-## Build environment variables
 API_NAME="rocprofiler-systems"
 PROJ_NAME="$API_NAME"
 LIB_NAME="lib${API_NAME}"
@@ -34,11 +33,11 @@ TARGET="build"
 MAKETARGET="deb"
 PACKAGE_ROOT="$(getPackageRoot)"
 PACKAGE_LIB="$(getLibPath)"
-# PACKAGE_INCLUDE="$(getIncludePath)"
+
 BUILD_DIR="$(getBuildPath $API_NAME)"
 PACKAGE_DEB="$(getPackageRoot)/deb/$API_NAME"
 PACKAGE_RPM="$(getPackageRoot)/rpm/$API_NAME"
-# PACKAGE_PREFIX="$ROCM_INSTALL_PATH"
+
 BUILD_TYPE="Debug"
 MAKE_OPTS="-j 8"
 SHARED_LIBS="ON"
@@ -47,7 +46,6 @@ MAKETARGET="deb"
 PKGTYPE="deb"
 ASAN=0
 
-#parse the arguments
 VALID_STR=$(getopt -o hcraso:p:w --long help,clean,release,address_sanitizer,static,outdir:,package:,wheel -- "$@")
 eval set -- "$VALID_STR"
 
@@ -123,10 +121,6 @@ clean() {
 
 build_rocprofiler_systems() {
     echo "Building $PROJ_NAME"
-    if [ "$DISTRO_ID" = "mariner-2.0" ] || [ "$DISTRO_ID" = "azurelinux-3.0" ]; then
-        echo "Skip make and uploading packages for \"$PROJ_NAME\" on \"${DISTRO_ID}\" distro"
-        exit 0
-    fi
 
     if [ $ASAN == 1 ]; then
         echo "Skip make and uploading packages for rocprofiler-systems on ASAN build"
@@ -147,9 +141,9 @@ build_rocprofiler_systems() {
 
     echo "Updating submodules"
     git submodule init
-    # copy the new URL to your local config
+
     git submodule sync --recursive
-    # force update the submodule from the new URL
+
     git submodule update --init --recursive --force
 
     echo "Updated submodule status"
@@ -234,7 +228,7 @@ verifyEnvSetup
 
 case "$TARGET" in
     clean) clean ;;
-    build) build_rocprofiler_systems; build_wheel "$BUILD_DIR" "$PROJ_NAME" ;;
+    build) build_rocprofiler_systems ;;
     outdir) print_output_directory ;;
     *) die "Invalid target $TARGET" ;;
 esac

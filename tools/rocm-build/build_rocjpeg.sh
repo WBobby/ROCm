@@ -4,10 +4,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/compute_helper.sh"
 set_component_src rocJPEG
 BUILD_DEV=ON
 build_rocjpeg() {
-    if [ "$DISTRO_ID" = "centos-7" ] || [ "$DISTRO_ID" = "sles-15.4" ] || [ "$DISTRO_ID" = "azurelinux-3.0" ] ; then
-     echo "Not building rocJPEG for ${DISTRO_ID}. Exiting..." 
-     return 0
-    fi
     echo "Start build"
 
     if [ "${ENABLE_STATIC_BUILDS}" == "true" ]; then

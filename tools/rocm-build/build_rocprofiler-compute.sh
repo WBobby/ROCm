@@ -26,7 +26,6 @@ printUsage() {
     return 0
 }
 
-## Build environment variables
 API_NAME="rocprofiler-compute"
 PROJ_NAME="$API_NAME"
 LIB_NAME="lib${API_NAME}"
@@ -44,13 +43,11 @@ CLEAN_OR_OUT=0;
 MAKETARGET="deb"
 PKGTYPE="deb"
 
-#parse the arguments
 VALID_STR=$(getopt -o hcraso:p:w --long help,clean,release,static,address_sanitizer,outdir:,package:,wheel -- "$@")
 eval set -- "$VALID_STR"
 
 while true ;
 do
-    #echo "parocessing $1"
     case "$1" in
         -h | --help)
                 printUsage ; exit 0;;
@@ -69,7 +66,7 @@ do
                 ack_and_skip_static ;;
         -w | --wheel)
                 WHEEL_PACKAGE=true ; shift ;;
-        --)     shift; break;; # end delimiter
+        --)     shift; break;;
         *)
                 echo " This should never come but just incase : UNEXPECTED ERROR Parm : [$1] ">&2 ; exit 20;;
     esac
@@ -140,7 +137,7 @@ verifyEnvSetup
 
 case "$TARGET" in
     (clean) clean ;;
-    (build) build; build_wheel "$BUILD_DIR" "$PROJ_NAME" ;;
+    (build) build ;;
     (outdir) print_output_directory ;;
     (*) die "Invalid target $TARGET" ;;
 esac
