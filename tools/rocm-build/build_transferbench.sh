@@ -13,6 +13,8 @@ build_transferbench() {
         ack_and_skip_static
     fi
 
+    sed 's/^\(\s*set\s*(CMAKE_RUNTIME_OUTPUT_DIRECTORY.*\)$/#\1/'  "${COMPONENT_SRC}/CMakeLists.txt"
+
     mkdir -p "$BUILD_DIR" && cd "$BUILD_DIR"
     init_rocm_common_cmake_params
 
