@@ -23,7 +23,8 @@ build_transferbench() {
     make package
 
     rm -rf _CPack_Packages/ && find -name '*.o' -delete
-    copy_if "${PKGTYPE}" "${CPACKGEN:-"DEB;RPM"}" "${PACKAGE_DIR}" "${BUILD_DIR}"/*."${PKGTYPE}"
+    mkdir -p $PACKAGE_DIR
+    cp ${BUILD_DIR}/*.${PKGTYPE} $PACKAGE_DIR
     show_build_cache_stats
 }
 
