@@ -46,6 +46,8 @@ build_miopen_ck() {
         -DCMAKE_C_COMPILER="${ROCM_PATH}/llvm/bin/clang" \
         ${LAUNCHER_FLAGS} \
         -DGPU_ARCHS="${GPU_ARCH_LIST}" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_FLAGS=" -O3 " \
         "$COMPONENT_SRC"
 
     cmake --build . -- -j${PROC} package
