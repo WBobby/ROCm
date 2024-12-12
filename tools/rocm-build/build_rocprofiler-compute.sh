@@ -110,7 +110,6 @@ build() {
             $(rocm_common_cmake_params) \
             -DCHECK_PYTHON_DEPS=NO \
             -DPYTHON_DEPS=${BUILD_DIR}/python-libs \
-            -DMOD_INSTALL_PATH=${BUILD_DIR}/modulefiles \
             "$ROCPROFILER_COMPUTE_ROOT"
     fi
     make $MAKE_OPTS
