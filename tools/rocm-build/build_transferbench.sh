@@ -37,7 +37,7 @@ clean_transferbench() {
 stage2_command_args "$@"
 
 case $TARGET in
-    build) build_transferbench; build_wheel ;;
+    build) build_transferbench ;;
     outdir) print_output_directory ;;
     clean) clean_transferbench ;;
     *) die "Invalid target $TARGET" ;;
