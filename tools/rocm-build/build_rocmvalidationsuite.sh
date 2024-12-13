@@ -27,6 +27,7 @@ build_rocmvalidationsuite() {
         "${rocm_math_common_cmake_params[@]}" \
         -DFETCH_ROCMPATH_FROM_ROCMCORE=ON \
         -DCMAKE_SHARED_LINKER_FLAGS_INIT="-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$ROCM_LIB_RPATH:$ROCM_RVS_LIB_RPATH" \
+        -DRVS_BUILD_TESTS=FALSE \
         -B "$BUILD_DIR" \
         "$COMPONENT_SRC"
 
