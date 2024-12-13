@@ -86,7 +86,7 @@ make -j$(nproc)
 make install
 rm -rf /tmp/gtest
 
-## Install gRPC from source
+# Install gRPC from source
 GRPC_ARCHIVE=grpc-1.61.0.tar.gz
 mkdir /tmp/grpc
 mkdir /usr/grpc
@@ -99,7 +99,7 @@ cmake -DgRPC_INSTALL=ON -DBUILD_SHARED_LIBS=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_IN
 make -j $(nproc) install
 rm -rf /tmp/grpc
 
-## Download prebuilt AMD multithreaded blis (2.0)
+# Download prebuilt AMD multithreaded blis (2.0)
 mkdir -p /tmp/blis
 cd /tmp/blis
 wget -O - https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz | tar xfz -
@@ -114,7 +114,7 @@ wget -nv https://download.amd.com/developer/eula/aocl/aocl-4-0/aocl-linux-aocc-4
 apt install ./aocl-linux-aocc-4.0_1_amd64.deb
 rm -rf /tmp/aocl
 
-## lapack(3.9.1v)
+# lapack(3.9.1v)
 lapack_version=3.9.1
 lapack_srcdir=lapack-$lapack_version
 lapack_blddir=lapack-$lapack_version-bld
@@ -131,7 +131,7 @@ cp -r ./lib/* /usr/local/lib
 cd /
 rm -rf /tmp/lapack
 
-## FMT(7.1.3v)
+# FMT(7.1.3v)
 fmt_version=7.1.3
 fmt_srcdir=fmt-$fmt_version
 fmt_blddir=fmt-$fmt_version-bld
