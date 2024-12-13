@@ -57,7 +57,7 @@ chmod +x /usr/local/bin/opam
 opam init --yes --disable-sandboxing
 opam install ctypes --yes
 
-# Install and modify git-repo (#!/usr/bin/env python -> #!/usr/bin/env python3)
+# Install and modify git-repo
 curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/bin/repo
 chmod a+x /usr/bin/repo
 
