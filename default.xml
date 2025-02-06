@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
     <remote name="rocm-org" fetch="https://github.com/ROCm/" />
+    <remote name="ammallya" fetch="https://github.com/ammallya/" />
     <default revision="refs/heads/amd-mainline"
      remote="rocm-org"
      sync-c="true"
      sync-j="4" />
 <!--list of projects for ROCm-->
-    <project name="ROCm" revision="refs/heads/develop" />
+    <project name="ROCm" revision="refs/heads/develop" remote="ammallya" />
     <project name="ROCK-Kernel-Driver" revision="refs/heads/master" /> 
     <project name="ROCR-Runtime" revision="refs/heads/amd-master"/> 
     <project name="amdsmi" /> 
