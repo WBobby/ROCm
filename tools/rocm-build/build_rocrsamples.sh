@@ -42,7 +42,7 @@ PKGTYPE="deb"
 
 
 #parse the arguments
-VALID_STR=`getopt -o hcrao:seg: --long help,clean,release,outdir:,static,address_sanitizer,emulator,gpu_list: -- "$@"`
+VALID_STR=`getopt -o hcrawo:seg: --long help,clean,release,outdir:,static,wheel,address_sanitizer,emulator,gpu_list: -- "$@"`
 eval set -- "$VALID_STR"
 
 while true ;
@@ -61,6 +61,8 @@ do
                 exit ;;
         (-s | --static)
                 ack_and_skip_static ;;
+        (-w | --wheel)
+                echo "wheel build option accepted and ignored" ; shift ;;
         (-e | --emulator )
                 EMULATOR_BUILD=1 ; ((CLEAN_OR_OUT|=3)) ; shift ;;
         (-g | --gpu_list )
@@ -106,9 +108,6 @@ build_rocrsamples() {
 
     echo "Copying HSA Sample binaries to $ROCRTST_SAMPLES_PACKAGE"
     progressCopy "$ROCRTST_SAMPLES_BUILD_DIR" "$ROCRTST_SAMPLES_PACKAGE"
-
-    mkdir -p "$PACKAGE_UTILS"
-    progressCopy "$SCRIPT_ROOT/run_rocrsamples.sh" "$PACKAGE_UTILS"
     popd
 }
 

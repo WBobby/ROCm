@@ -1,10 +1,18 @@
 parameters:
+- name: componentName
+  type: string
+  default: rocJPEG
 - name: checkoutRepo
   type: string
   default: 'self'
 - name: checkoutRef
   type: string
   default: ''
+# set to true if doing full build of ROCm stack
+# and dependencies are pulled from same pipeline
+- name: aggregatePipeline
+  type: boolean
+  default: false
 - name: aptPackages
   type: object
   default:
@@ -15,6 +23,7 @@ parameters:
     - mesa-amdgpu-va-drivers
     - ninja-build
     - pkg-config
+    - python3-pip
 - name: rocmDependencies
   type: object
   default:
@@ -34,115 +43,141 @@ parameters:
     - rocprofiler-register
     - ROCR-Runtime
 
-jobs:
-- job: rocJPEG
-  variables:
-  - group: common
-  - template: /.azuredevops/variables-global.yml
-  pool:
-    vmImage: ${{ variables.BASE_BUILD_POOL }}
-  workspace:
-    clean: all
-  steps:
-  # Since mesa-amdgpu-multimedia-devel is not directly available from apt, register it
-  - task: Bash@3
-    displayName: 'Register ROCm packages'
-    inputs:
-      targetType: inline
-      script: |
-        sudo mkdir --parents --mode=0755 /etc/apt/keyrings
-        wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/${{ variables.KEYRING_VERSION }}/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/amdgpu.list
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/${{ variables.KEYRING_VERSION }} jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
-        echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
-        sudo apt update
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
-    parameters:
-      aptPackages: ${{ parameters.aptPackages }}
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
-    parameters:
-      checkoutRepo: ${{ parameters.checkoutRepo }}
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
-    parameters:
-      dependencyList: ${{ parameters.rocmDependencies }}
-      gpuTarget: $(JOB_GPU_TARGET)
-      # CI case: download latest default branch build
-      ${{ if eq(parameters.checkoutRef, 'develop') }}:
-        dependencySource: staging
-      # manual build case: triggered by ROCm/ROCm repo
-      ${{ elseif ne(parameters.checkoutRef, 'develop') }}:
-        dependencySource: tag-builds
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
-    parameters:
-      extraBuildFlags: >-
-        -DROCM_PATH=$(Agent.BuildDirectory)/rocm
-        -DCMAKE_PREFIX_PATH=$(Agent.BuildDirectory)/rocm
-        -DCMAKE_BUILD_TYPE=Release
-        -GNinja
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/manifest.yml
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
+- name: jobMatrix
+  type: object
+  default:
+    buildJobs:
+      - { os: ubuntu2204, packageManager: apt, target: gfx942 }
+      - { os: ubuntu2204, packageManager: apt, target: gfx90a }
+      - { os: ubuntu2204, packageManager: apt, target: gfx1201 }
+      - { os: ubuntu2204, packageManager: apt, target: gfx1030 }
+      - { os: ubuntu2204, packageManager: apt, target: gfx1100 }
+      - { os: almalinux8, packageManager: dnf, target: gfx942 }
+      - { os: almalinux8, packageManager: dnf, target: gfx90a }
+      - { os: almalinux8, packageManager: dnf, target: gfx1201 }
+      - { os: almalinux8, packageManager: dnf, target: gfx1100 }
+      - { os: almalinux8, packageManager: dnf, target: gfx1030 }
+    testJobs:
+      - { os: ubuntu2204, packageManager: apt, target: gfx942 }
+      - { os: ubuntu2204, packageManager: apt, target: gfx90a }
 
-- job: rocJPEG_testing
-  dependsOn: rocJPEG
-  condition: and(succeeded(), eq(variables.ENABLE_GFX942_TESTS, 'true'), not(containsValue(split(variables.DISABLED_GFX942_TESTS, ','), variables['Build.DefinitionName'])))
-  variables:
-  - group: common
-  - template: /.azuredevops/variables-global.yml
-  pool:
-    name: $(JOB_TEST_POOL)
-    demands: firstRenderDeviceAccess
-  workspace:
-    clean: all
-  strategy:
-    matrix:
-      gfx942:
-        JOB_GPU_TARGET: gfx942
-        JOB_TEST_POOL: ${{ variables.GFX942_TEST_POOL }}
-  steps:
-  # Since mesa-amdgpu-multimedia-devel is not directly available from apt, register it
-  - task: Bash@3
-    displayName: 'Register ROCm packages'
-    inputs:
-      targetType: inline
-      script: |
-        sudo mkdir --parents --mode=0755 /etc/apt/keyrings
-        wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/${{ variables.KEYRING_VERSION }}/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/amdgpu.list
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/${{ variables.KEYRING_VERSION }} jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
-        echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
-        sudo apt update
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
-    parameters:
-      aptPackages: ${{ parameters.aptPackages }}
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/local-artifact-download.yml
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-aqlprofile.yml
-    parameters:
-      ${{ if eq(parameters.checkoutRef, 'develop') }}:
-        dependencySource: staging
-      ${{ elseif ne(parameters.checkoutRef, 'develop') }}:
-        dependencySource: tag-builds
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
-    parameters:
-      dependencyList: ${{ parameters.rocmTestDependencies }}
-      gpuTarget: $(JOB_GPU_TARGET)
-      ${{ if eq(parameters.checkoutRef, 'develop') }}:
-        dependencySource: staging
-      ${{ elseif ne(parameters.checkoutRef, 'develop') }}:
-        dependencySource: tag-builds
-  # anything in /opt may be persistent across runs
-  # so we need to remove the symlink if it already exists
-  - script: |
-      sudo rm -rf /opt/rocm
-      sudo ln -s $(Agent.BuildDirectory)/rocm /opt/rocm
-      mkdir rocJPEG-tests
-      cd rocJPEG-tests
-      cmake $(Agent.BuildDirectory)/rocm/share/rocjpeg/test
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/gpu-diagnostics.yml
-  - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/test.yml
-    parameters:
-      componentName: rocJPEG
-      testDir: 'rocJPEG-tests'
-  - script: sudo rm /opt/rocm
-    condition: always()
+jobs:
+- ${{ each job in parameters.jobMatrix.buildJobs }}:
+  - job: ${{ parameters.componentName }}_build_${{ job.os }}_${{ job.target }}
+    variables:
+    - group: common
+    - template: /.azuredevops/variables-global.yml
+    - name: ROCM_PATH
+      value: $(Agent.BuildDirectory)/rocm
+    pool:
+      ${{ if eq(job.os, 'ubuntu2404') }}:
+        name: rocm-ci_medium_build_pool_2404
+      ${{ else }}:
+        name: ${{ variables.MEDIUM_BUILD_POOL }}
+    ${{ if eq(job.os, 'almalinux8') }}:
+      container:
+        image: rocmexternalcicd.azurecr.io/manylinux228:latest
+        endpoint: ContainerService3
+    workspace:
+      clean: all
+    steps:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
+      parameters:
+        aptPackages: ${{ parameters.aptPackages }}
+        packageManager: ${{ job.packageManager }}
+        registerROCmPackages: true
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/checkout.yml
+      parameters:
+        checkoutRepo: ${{ parameters.checkoutRepo }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        checkoutRef: ${{ parameters.checkoutRef }}
+        dependencyList: ${{ parameters.rocmDependencies }}
+        gpuTarget: ${{ job.target }}
+        os: ${{ job.os }}
+        aggregatePipeline: ${{ parameters.aggregatePipeline }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/build-cmake.yml
+      parameters:
+        os: ${{ job.os }}
+        consolidateBuildAndInstall: true
+        extraBuildFlags: >-
+          -DCMAKE_PREFIX_PATH="$(Agent.BuildDirectory)/rocm"
+          -DCMAKE_BUILD_TYPE=Release
+          -DGPU_TARGETS=${{ job.target }}
+          -GNinja
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/manifest.yml
+      parameters:
+        componentName: ${{ parameters.componentName }}
+        os: ${{ job.os }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-upload.yml
+      parameters:
+        componentName: ${{ parameters.componentName }}
+        gpuTarget: ${{ job.target }}
+        os: ${{ job.os }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/artifact-links.yml
+    # - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/docker-container.yml
+    #   parameters:
+    #     aptPackages: ${{ parameters.aptPackages }}
+    #     gpuTarget: ${{ job.target }}
+    #     registerROCmPackages: true
+
+- ${{ each job in parameters.jobMatrix.testJobs }}:
+  - job: ${{ parameters.componentName }}_test_${{ job.os }}_${{ job.target }}
+    dependsOn: ${{ parameters.componentName }}_build_${{ job.os }}_${{ job.target }}
+    condition:
+      and(succeeded(),
+        eq(variables['ENABLE_${{ upper(job.target) }}_TESTS'], 'true'),
+        not(containsValue(split(variables['DISABLED_${{ upper(job.target) }}_TESTS'], ','), variables['Build.DefinitionName'])),
+        eq(${{ parameters.aggregatePipeline }}, False)
+      )
+    variables:
+    - group: common
+    - template: /.azuredevops/variables-global.yml
+    - name: ROCM_PATH
+      value: $(Agent.BuildDirectory)/rocm
+    pool:
+      name: ${{ job.target }}_test_pool
+    workspace:
+      clean: all
+    steps:
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-other.yml
+      parameters:
+        aptPackages: ${{ parameters.aptPackages }}
+        packageManager: ${{ job.packageManager }}
+        registerROCmPackages: true
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/preamble.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/local-artifact-download.yml
+      parameters:
+        gpuTarget: ${{ job.target }}
+        os: ${{ job.os }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-aqlprofile.yml
+      parameters:
+        os: ${{ job.os }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/dependencies-rocm.yml
+      parameters:
+        checkoutRef: ${{ parameters.checkoutRef }}
+        dependencyList: ${{ parameters.rocmTestDependencies }}
+        gpuTarget: ${{ job.target }}
+        os: ${{ job.os }}
+    - task: Bash@3
+      displayName: Build rocJPEG tests
+      inputs:
+        targetType: inline
+        script: |
+          ${{ iif(eq(job.os, 'almalinux8'), 'source /opt/rh/gcc-toolset-14/enable', '') }}
+          mkdir rocJPEG-tests
+          cd rocJPEG-tests
+          cmake $(Agent.BuildDirectory)/rocm/share/rocjpeg/test
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/gpu-diagnostics.yml
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/test.yml
+      parameters:
+        componentName: rocJPEG
+        testDir: 'rocJPEG-tests'
+        os: ${{ job.os }}
+    - template: ${{ variables.CI_TEMPLATE_PATH }}/steps/docker-container.yml
+      parameters:
+        aptPackages: ${{ parameters.aptPackages }}
+        environment: test
+        gpuTarget: ${{ job.target }}
+        registerROCmPackages: true

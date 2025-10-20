@@ -1,30 +1,30 @@
 .. meta::
-   :description: How to use ROCm for HPC
-   :keywords: ROCm, AI, high performance computing, HPC
+   :description: How to use ROCm for high-performance computing (HPC).
+   :keywords: ROCm, AI, high performance computing, HPC, science, scientific
 
 ******************
 Using ROCm for HPC
 ******************
 
 The ROCm open-source software stack is optimized to extract high-performance
-computing (HPC) workload performance from AMD Instinct™ accelerators
+computing (HPC) workload performance from AMD Instinct™ GPUs
 while maintaining compatibility with industry software frameworks.
 
 ROCm enhances support and access for developers by providing streamlined and
 improved tools that significantly increase productivity. Being open-source, ROCm
 fosters innovation, differentiation, and collaboration within the developer
 community, making it a powerful and accessible solution for leveraging the full
-potential of AMD accelerators' capabilities in diverse computational
+potential of AMD GPUs' capabilities in diverse computational
 applications.
 
 * For more information, see :doc:`What is ROCm? <../../what-is-rocm>`.
 
 * For guidance on installing ROCm, see :doc:`rocm-install-on-linux:index`. See
-  the :doc:`../../compatibility/compatibility-matrix` for details on hardware
+  the :doc:`Compatibility matrix <../../compatibility/compatibility-matrix>` for details on hardware
   and operating system support.
 
 Some of the most popular HPC frameworks are part of the ROCm platform, including
-those to help parallelize operations across multiple accelerators and servers,
+those to help parallelize operations across multiple GPUs and servers,
 handle memory hierarchies, and solve linear systems.
 
 .. image:: ../../data/how-to/rocm-for-hpc/hpc-stack-2024_6_20.png
@@ -32,13 +32,13 @@ handle memory hierarchies, and solve linear systems.
    :alt: Software and hardware ecosystem surrounding ROCm and AMD Instinct for HPC
 
 The following catalog of GPU-accelerated solutions includes a vast set of
-platform-compatible HPC applications, including those for astrophysics, climate 
+platform-compatible HPC applications, including those for astrophysics, climate
 and weather, computational chemistry, computational fluid dynamics, earth
 science, genomics, geophysics, molecular dynamics, and physics computing.
 
 Refer to the resources in the following table for instructions on building,
 running, and deploying these applications on ROCm-capable systems with AMD
-Instinct accelerators. Each build container provides parameters to specify
+Instinct GPUs. Each build container provides parameters to specify
 different source code branches, release versions of ROCm, OpenMPI, UCX, and
 Ubuntu versions.
 
@@ -80,8 +80,8 @@ Ubuntu versions.
         - `Grid <https://github.com/amd/InfinityHub-CI/tree/main/grid/>`_
         - Grid is a library for lattice QCD calculations that employs a high-level data parallel
           approach while using a number of techniques to target multiple types of parallelism.
-          The library currently supports MPI, OpenMP and short vector parallelism. The SIMD
-          instructions sets covered include SSE, AVX, AVX2, FMA4, IMCI and AVX512. Recent
+          The library currently supports MPI, OpenMP, and short vector parallelism. The SIMD
+          instruction sets covered include SSE, AVX, AVX2, FMA4, IMCI, and AVX512. Recent
           releases expanded this support to include GPU offloading.
 
       * -
@@ -92,6 +92,13 @@ Ubuntu versions.
           to HPC systems. The MILC Code is publicly available for research purposes.
           Publications of work done using this code or derivatives of this code should
           acknowledge this use.
+
+      * - 
+        - `QUDA <https://github.com/amd/InfinityHub-CI/tree/main/quda>`_
+        - Library designed for efficient lattice QCD computations on
+          GPUs. It includes optimized Dirac operators and a variety of
+          fermion solvers and conjugate gradient (CG) implementations, enhancing
+          performance and accuracy in lattice QCD simulations.
 
       * -
         - `PIConGPU <https://github.com/amd/InfinityHub-CI/tree/main/picongpu>`_
@@ -115,6 +122,12 @@ Ubuntu versions.
           for non-destructive testing or for ocean acoustics.
 
       * - Molecular dynamics
+        - `Amber <https://github.com/amd/InfinityHub-CI/tree/main/amber>`_
+        - Amber is a suite of biomolecular simulation programs. It is a set of molecular mechanical force fields for
+          simulating biomolecules. Amber is also a package of molecular simulation
+          programs which includes source code and demos.
+
+      * -
         - `GROMACS with HIP (AMD implementation) <https://github.com/amd/InfinityHub-CI/tree/main/gromacs>`_
         - GROMACS is a versatile package to perform molecular dynamics, i.e.
           simulate the Newtonian equations of motion for systems with hundreds
@@ -129,6 +142,13 @@ Ubuntu versions.
           Parallel Simulator.
 
       * - Computational fluid dynamics
+        - `Ansys Fluent <https://github.com/amd/InfinityHub-CI/tree/main/ansys-fluent>`_
+        - Ansys Fluent is an advanced computational fluid dynamics (CFD) tool for
+          simulating and analyzing fluid flow, heat transfer, and related phenomena in complex systems.
+          It offers a range of powerful features for detailed and accurate modeling of various physical
+          processes, including turbulence, chemical reactions, and multiphase flows.
+
+      * -
         - `NEKO <https://github.com/amd/InfinityHub-CI/tree/main/neko>`_
         - Neko is a portable framework for high-order spectral element flow simulations.
           Written in modern Fortran, Neko adopts an object-oriented approach, allowing
@@ -137,23 +157,11 @@ Ubuntu versions.
           accelerators to SX-Aurora vector processors.
 
       * -
-        - `nekRS <https://github.com/amd/InfinityHub-CI/tree/main/nekrs>`_
-        - nekRS is an open-source Navier Stokes solver based on the spectral element
-          method targeting classical processors and accelerators like GPUs. 
-
-      * - Computational chemistry
-        - `QUDA <https://github.com/amd/InfinityHub-CI/tree/main/quda>`_
-        - Library designed for efficient lattice QCD computations on
-          accelerators. It includes optimized Dirac operators and a variety of
-          fermion solvers and conjugate gradient (CG) implementations, enhancing
-          performance and accuracy in lattice QCD simulations.
-
-      * - Electronic structure
-        - `CP2K <https://github.com/amd/InfinityHub-CI/tree/main/cp2k>`_
-        - CP2K is a quantum chemistry and solid state physics software package that can
-          perform atomistic simulations of solid state, liquid, molecular, periodic, material,
-          crystal, and biological systems. This AMD container, based on a released version
-          of CP2K, is an AMD beta version with ongoing optimizations.
+        - `Simcenter Star-CCM+ <https://github.com/amd/InfinityHub-CI/tree/main/siemens-star-ccm>`_
+        - Simcenter Star-CCM+ is a comprehensive computational fluid dynamics (CFD) and multiphysics
+          simulation tool developed by Siemens Digital Industries Software. It is designed to
+          help engineers and researchers analyze and optimize the performance of products and
+          systems across various industries.
 
       * - Quantum Monte Carlo Simulation
         - `QMCPACK <https://github.com/amd/InfinityHub-CI/tree/main/qmcpack>`_
@@ -170,12 +178,21 @@ Ubuntu versions.
           developing atmosphere, ocean, and other earth-system simulation components
           for use in climate, regional climate, and weather studies.
 
+      * - Energy, Oil, and Gas
+        - `DevitoPRO <https://github.com/amd/InfinityHub-CI/tree/main/devitopro>`_
+        - DevitoPRO is an advanced extension of the open-source Devito platform with added
+          features tailored for high-demand production workflows. It supports
+          high-performance computing (HPC) needs, especially in seismic imaging and inversion.
+          It is used to perform optimized finite difference (FD) computations
+          from high-level symbolic problem definitions. DevitoPro performs automated
+          code generation and Just-In-time (JIT) compilation based on symbolic equations
+          defined in SymPy to create and execute highly optimized Finite Difference stencil
+          kernels on multiple computer platforms.
+
       * - Benchmark
         - `rocHPL <https://github.com/amd/InfinityHub-CI/tree/main/rochpl>`_
-        - HPL, or High-Performance Linpack, is a benchmark which solves a uniformly 
-          random system of linear equations and reports floating-point execution rate. 
-          This documentation supports the implementation of the HPL benchmark on 
-          top of AMD's ROCm platform.
+        - HPL, or High-Performance Linpack, is a benchmark which solves a uniformly
+          random system of linear equations and reports floating-point execution rate.
 
       * -
         - `rocHPL-MxP <https://github.com/amd/InfinityHub-CI/tree/main/hpl-mxp>`_
@@ -193,12 +210,22 @@ Ubuntu versions.
           of these applications.
 
       * - Tools and libraries
-        - `ROCm with GPU-aware MPI container <https://github.com/amd/InfinityHub-CI/tree/main/base-gpu-mpi-rocm-docker>`_
+        - `AMD ROCm with OpenMPI container <https://github.com/amd/InfinityHub-CI/tree/main/base-gpu-mpi-rocm-docker>`_
         - Base container for GPU-aware MPI with ROCm for HPC applications. This
           project provides a boilerplate for building and running a Docker
           container with ROCm supporting GPU-aware MPI implementations using
           OpenMPI or UCX.
+      
+      * - 
+        - `AMD ROCm with MPICH container <https://github.com/amd/InfinityHub-CI/tree/main/base-mpich-rocm-docker>`_
+        - Base container for GPU-aware MPI with ROCm for HPC applications. This
+          project provides a boilerplate for building and running a Docker
+          container with ROCm supporting GPU-aware MPI implementations using MPICH.
 
+      * - 
+        - `AMD ROCm with Conda Environment Container <https://github.com/amd/InfinityHub-CI/tree/main/conda-rocm-environment>`_
+        - Container recipe that uses the `base-gpu-mpi-rocm-docker` as the base and adds Conda. The container can be used as a base for applications that require conda applications.
+      
       * -
         - `Kokkos <https://github.com/amd/InfinityHub-CI/tree/main/kokkos>`_
         - Kokkos is a programming model in C++ for writing performance portable
@@ -227,5 +254,10 @@ Ubuntu versions.
         - The Trilinos Project is an effort to develop algorithms and enabling technologies
           within an object-oriented software framework for the solution of large-scale,
           complex multi-physics engineering and scientific problems.
+
+      * -
+        - `VLLM <https://github.com/amd/InfinityHub-CI/tree/main/vllm>`_
+        - The VLLM project helps to build a Dockerfile for performance testing of the LLAMA2 applications.
+          This Dockerfile uses a base install that includes Ubuntu 20.04, ROCm 6.1.2 and Python 3.9. The container can host the LLAMA2 applications (LLMs) and requires some large input files for testing.
 
 To learn about ROCm for AI applications, see :doc:`../rocm-for-ai/index`.

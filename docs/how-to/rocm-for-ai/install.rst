@@ -1,14 +1,14 @@
 .. meta::
-   :description: How to use ROCm for AI
+   :description: How to install ROCm and popular deep learning frameworks.
    :keywords: ROCm, AI, LLM, train, fine-tune, FSDP, DeepSpeed, LLaMA, tutorial
 
 .. _rocm-for-ai-install:
 
-***********************************************
-Installing ROCm and machine learning frameworks
-***********************************************
+********************************************
+Installing ROCm and deep learning frameworks
+********************************************
 
-Before getting started, install ROCm and supported machine learning frameworks.
+Before getting started, install ROCm and supported deep learning frameworks.
 
 .. grid:: 1
 
@@ -22,15 +22,16 @@ If you’re new to ROCm, refer to the :doc:`ROCm quick start install guide for L
 <rocm-install-on-linux:install/quick-start>`.
 
 If you’re using a Radeon GPU for graphics-accelerated applications, refer to the
-`Radeon installation instructions <https://rocm.docs.amd.com/projects/radeon/en/docs-6.1.3/docs/install/native_linux/install-radeon.html>`_.
+`Radeon installation instructions <https://rocm.docs.amd.com/projects/radeon/en/latest/docs/install/native_linux/howto_native_linux.html>`_.
 
-ROCm supports multiple :doc:`installation methods <rocm-install-on-linux:install/install-overview>`:
+You can install ROCm on :doc:`compatible systems <rocm-install-on-linux:reference/system-requirements>` via your Linux
+distribution's package manager. See the following documentation resources to get started:
 
-* :doc:`Using your Linux distribution's package manager <rocm-install-on-linux:install/native-install/index>`
+* :doc:`ROCm installation overview <rocm-install-on-linux:install/install-overview>`
 
-* :doc:`Using the AMDGPU installer <rocm-install-on-linux:install/amdgpu-install>`
+* :doc:`Using your Linux distribution's package manager <rocm-install-on-linux:install/install-methods/package-manager-index>`
 
-* :ref:`Multi-version installation <rocm-install-on-linux:installation-types>`.
+* :ref:`Multi-version installation <rocm-install-on-linux:installation-types>`
 
 .. grid:: 1
 
@@ -42,21 +43,18 @@ ROCm supports multiple :doc:`installation methods <rocm-install-on-linux:install
       If you encounter any issues during installation, refer to the
       :doc:`Installation troubleshooting <rocm-install-on-linux:reference/install-faq>` guide.
 
-Machine learning frameworks
-===========================
+Deep learning frameworks
+========================
 
-ROCm supports popular machine learning frameworks and libraries including `PyTorch
-<https://pytorch.org/blog/pytorch-for-amd-rocm-platform-now-available-as-python-package>`_, `TensorFlow
-<https://tensorflow.org>`_, `JAX <https://jax.readthedocs.io/en/latest>`_, and `DeepSpeed
-<https://cloudblogs.microsoft.com/opensource/2022/03/21/supporting-efficient-large-model-training-on-amd-instinct-gpus-with-deepspeed/>`_.
+ROCm supports deep learning frameworks and libraries including `PyTorch
+<https://pytorch.org>`_, `TensorFlow
+<https://tensorflow.org>`_, `JAX <https://jax.readthedocs.io/en/latest>`_, and more.
 
-Review the framework installation documentation. For ease-of-use, it's recommended to use official ROCm prebuilt Docker
+Review the :doc:`framework installation documentation <../deep-learning-rocm>`. For ease-of-use, it's recommended to use official ROCm prebuilt Docker
 images with the framework pre-installed.
 
-* :doc:`PyTorch for ROCm <rocm-install-on-linux:install/3rd-party/pytorch-install>`
+Next steps
+==========
 
-* :doc:`TensorFlow for ROCm <rocm-install-on-linux:install/3rd-party/tensorflow-install>`
-
-* :doc:`JAX for ROCm <rocm-install-on-linux:install/3rd-party/jax-install>`
-
-The sections that follow in :doc:`Training a model <train-a-model>` are geared for a ROCm with PyTorch installation.
+After installing ROCm and your desired ML libraries -- and before running AI workloads -- conduct system health benchmarks
+to test the optimal performance of your AMD hardware. See :doc:`system-setup/index` to get started.
